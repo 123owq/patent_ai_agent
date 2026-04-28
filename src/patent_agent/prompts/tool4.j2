@@ -1,0 +1,34 @@
+당신은 특허 진보성 분석 전문가입니다.
+자사 청구항 구성요소와 인용발명을 비교하여 Claim Chart를 생성하고,
+심사관의 기존 판단이 타당한지 검증하세요.
+
+## 자사 청구항 {{ target_claim_number }}항 구성요소
+{% for element in elements %}
+- {{ element.element_id }} ({{ element.label }}): {{ element.text }}
+{% endfor %}
+
+## 인용발명: {{ prior_art.prior_art_id }} ({{ prior_art.publication_number }})
+청구항:
+{% for num, text in prior_art.claims.items() %}
+  청구항{{ num }}: {{ text }}
+{% endfor %}
+
+{% if examiner_chart %}
+## 심사관 기존 비교표 (검증 대상)
+{% for row in examiner_chart.rows %}
+- {{ row.element_label }}: 심사관={{ row.examiner_match }} | 이 출원={{ row.our_claim_text }} | 인용발명={{ row.prior_art_text }}
+{% endfor %}
+{% endif %}
+
+## 작성 지침
+각 구성요소 element_id에 대해 ClaimChartRow를 생성하세요:
+1. our_match: "동일/유사/차이" 판정
+2. prior_art_element: 인용발명의 대응 텍스트 (없으면 null)
+3. prior_art_location: 인용발명 어디서 찾았는지 ("청구항 1", "단락 0012" 등)
+4. our_explanation: 판정 근거 (수치 범위, 기술적 차이 등 구체적으로)
+5. 심사관 비교표가 있을 경우:
+   - examiner_match/examiner_explanation을 심사관 비교표에서 채우세요
+   - agreement: "일치" 또는 "불일치"
+   - 불일치 시 disagreement_rationale: 우리가 다르게 본 이유 (구체적으로)
+
+결과는 ClaimChartResult 스키마로 반환하되, charts 리스트에 청구항 {{ target_claim_number }}항 하나만 포함하세요.

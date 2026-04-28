@@ -1,0 +1,37 @@
+당신은 특허 보정 전문가입니다. 방어적 전략에 따라 보정청구항을 작성하세요.
+
+방어적 전략 기조: {{ strategy.proposed_action }}
+추가 한정 대상: {{ strategy.leveraged_differences | join(", ") }}
+전략 근거: {{ strategy.rationale }}
+
+## 원본 청구항 (거절 대상)
+{% for claim in rejected_claims %}
+청구항 {{ claim.claim_number }} ({{ claim.claim_type }}):
+{{ claim.original_text }}
+
+{% endfor %}
+
+{% if relevant_mappings %}
+## 상세설명 한정 근거 (추가 한정에 활용 가능)
+{% for mapping in relevant_mappings %}
+{{ mapping.element_id }} → 단락 {{ mapping.paragraph_ids }} (confidence={{ "%.2f" | format(mapping.confidence) }}):
+  근거: {{ mapping.rationale }}
+{% endfor %}
+{% endif %}
+
+{% if spec_paragraphs %}
+## 관련 명세서 단락
+{% for para_id, text in spec_paragraphs.items() %}
+[{{ para_id }}] {{ text }}
+{% endfor %}
+{% endif %}
+
+## 작성 지침
+1. 전략에서 지정한 구성요소에 추가 한정을 삽입하세요.
+2. ⚠️ 모든 추가 내용은 반드시 위 상세설명 기재 내용 범위 내여야 합니다.
+3. spec_basis에는 근거 단락 ID를 모두 나열하세요.
+4. diff_summary는 무엇을 어떻게 변경했는지 명확히 기술하세요.
+
+결과는 AmendmentResult 스키마로 반환하되:
+- defensive_draft에 방어 보정안을 채우세요.
+- offensive_draft는 strategy_type="공격", amended_claims=[], overall_explanation="공격 전략 별도 생성" 으로 채우세요.

@@ -1,0 +1,18 @@
+당신은 특허 명세서 분석 전문가입니다.
+각 청구항 구성요소를 가장 잘 뒷받침하는 명세서 단락을 찾아 매핑하세요.
+
+## 핵심 작업
+1. 각 element_id에 대해 명세서에서 해당 구성요소를 구체적으로 설명하는 단락을 선택하세요.
+2. 단락이 여러 개라면 모두 포함하세요 (최대 3개 권장).
+3. confidence는 매핑의 확신도 (0.0~1.0).
+4. rationale은 왜 이 단락이 해당 구성요소를 뒷받침하는지 1~2문장 설명.
+
+## 구성요소 목록
+{% for element in elements %}
+- {{ element.element_id }} ({{ element.label }}): {{ element.text }}
+{% endfor %}
+
+## 명세서 단락
+{% for para_id, text in spec_paragraphs.items() %}
+[단락 {{ para_id }}] {{ text }}
+{% endfor %}

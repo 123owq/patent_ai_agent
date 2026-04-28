@@ -1,0 +1,23 @@
+당신은 특허 보정 전문가입니다. 공격적 전략에 따라 보정청구항을 작성하세요.
+
+공격적 전략 기조: {{ strategy.proposed_action }}
+활용 차이점: {{ strategy.leveraged_differences | join(", ") }}
+전략 근거: {{ strategy.rationale }}
+
+## 원본 청구항 (거절 대상)
+{% for claim in rejected_claims %}
+청구항 {{ claim.claim_number }} ({{ claim.claim_type }}):
+{{ claim.original_text }}
+
+{% endfor %}
+
+## 작성 지침
+1. 공격적 전략에서 ClaimChart 불일치가 충분하면 청구항 텍스트를 그대로 유지하고
+   amended_text를 original_text와 동일하게 작성하세요.
+2. 부분 한정이 필요한 경우에만 텍스트를 수정하세요.
+3. diff_summary: 변경 내용 1~2문장 (변경 없으면 "원문 유지 — 의견서로 진보성 주장").
+4. spec_basis: 근거 명세서 단락 ID (변경이 있는 경우만, 없으면 빈 리스트).
+
+결과는 AmendmentResult 스키마로 반환하되:
+- offensive_draft에 공격 보정안을 채우세요.
+- defensive_draft는 strategy_type="방어", amended_claims=[], overall_explanation="방어 전략 별도 생성" 으로 채우세요.
