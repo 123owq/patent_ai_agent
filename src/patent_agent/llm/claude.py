@@ -8,8 +8,13 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class ClaudeProvider:
-    def __init__(self, model: str = "claude-sonnet-4-6") -> None:
-        self.client = anthropic.Anthropic()
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str,
+        model: str = "claude-sonnet-4-6",
+    ) -> None:
+        self.client = anthropic.Anthropic(api_key=api_key, base_url=base_url)
         self.model = model
 
     def generate(self, prompt: str, schema: Type[T], temperature: float = 0.0) -> T:

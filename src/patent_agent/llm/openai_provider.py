@@ -8,8 +8,13 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class OpenAIProvider:
-    def __init__(self, model: str = "gpt-4.1") -> None:
-        self.client = openai.OpenAI()
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str,
+        model: str = "gpt-4.1",
+    ) -> None:
+        self.client = openai.OpenAI(api_key=api_key, base_url=base_url)
         self.model = model
 
     def generate(self, prompt: str, schema: Type[T], temperature: float = 0.0) -> T:
