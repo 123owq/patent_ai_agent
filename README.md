@@ -8,8 +8,6 @@
 
 ## 개요
 
-특허 의견제출통지서를 입력하면 AI가 자사 특허와 인용문헌을 비교·분석하여 공격적/방어적 대응 전략과 보정청구항 초안을 자동으로 생성합니다. 사용자는 두 전략을 나란히 비교하고 원하는 방향을 선택할 수 있습니다.
-
 ```
 의견제출통지서 + 자사특허 + 인용문헌
         ↓
@@ -19,90 +17,53 @@
  공격 전략 ↔ 방어 전략 비교
  보정청구항 초안 자동 생성
         ↓
-   챗봇으로 결과 질의·수정
-```
-
----
-
-## 주요 기능
-
-| 기능 | 설명 |
-|---|---|
-| 통지서 분석 | 거절이유·인용발명·문제 청구항 자동 추출 |
-| 청구항 파싱 | 구성요소 단위 분해 (element_id 부여) |
-| 상세설명 매핑 | 각 구성요소와 명세서 단락 자동 연결 |
-| Claim Chart | 자사 vs 인용발명 대비표 + 심사관 판단 검증 |
-| 공격·방어 전략 | 두 전략 동시 생성, UI에서 토글 비교 |
-| 보정청구항 생성 | 명세서 뒷받침 근거 포함 초안 자동 작성 |
-| 챗봇 | 결과 질의·수정 제안·특정 Tool 재실행 |
-
----
-
-## 기술 스택
-
-- **언어**: Python 3.12
-- **패키지 관리**: [uv](https://github.com/astral-sh/uv)
-- **백엔드**: FastAPI + uvicorn
-- **AI**: Claude API (Anthropic) / OpenAI API — 환경변수로 스위칭
-- **스키마**: Pydantic v2
-- **프론트엔드**: Next.js (별도 디렉토리, 미포함)
-
----
-
-## 프로젝트 구조
-
-```
-patent-agent/
-├── src/patent_agent/
-│   ├── models/          # Pydantic 데이터 모델
-│   ├── llm/             # LLM provider abstraction (Claude/OpenAI)
-│   ├── prompts/         # Jinja2 프롬프트 템플릿 (.j2)
-│   ├── tools/           # Tool 1~6 Pure Python 함수
-│   ├── core/            # pipeline, storage, chatbot, prompts
-│   └── api/             # FastAPI 앱 + 라우터
-├── tests/
-│   ├── fixtures/        # 테스트용 샘플 특허 데이터
-│   ├── unit/            # Tool별 단위 테스트
-│   └── integration/     # 파이프라인 통합 테스트 + E2E
-├── data/
-│   ├── input/           # 입력 JSON 파일 (특허, 통지서, 인용문헌)
-│   └── analysis/        # 분석 결과 저장 (버전 관리)
-├── docs/
-│   ├── superpowers/specs/   # 설계 문서
-│   └── superpowers/plans/   # 구현 계획서
-└── pyproject.toml
+   챗봇으로 결과 질의·수정 (스트리밍)
 ```
 
 ---
 
 ## 빠른 시작
 
-### 1. 의존성 설치
-
 ```bash
-# uv 설치 (없는 경우)
-pip install uv
-
-# 프로젝트 의존성 설치
+# 1. 의존성 설치
 uv sync --extra dev
+
+# 2. 환경변수 설정
+cp .env.example .env   # .env 열어서 API 키 입력
+
+# 3. 서버 실행
+uv run uvicorn patent_agent.api.main:app --reload --port 8000
 ```
 
-### 2. 환경변수 설정
+Swagger UI (API 직접 테스트): `http://localhost:8000/docs`
+
+---
+
+## 환경변수 (.env)
 
 ```bash
-cp .env.example .env
-# .env 파일을 열어 API 키 입력
-```
+LLM_PROVIDER=openai              # claude 또는 openai
 
-```bash
-# .env
-LLM_PROVIDER=claude          # claude 또는 openai
-ANTHROPIC_API_KEY=sk-ant-... # Claude 사용 시
-OPENAI_API_KEY=sk-...        # OpenAI 사용 시
+# Claude
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_BASE_URL=https://api.anthropic.com
+CLAUDE_MODEL=claude-sonnet-4-6
+
+# OpenAI (또는 호환 엔드포인트: Azure, 학교 포털 등)
+OPENAI_API_KEY=sk-...
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4.1
+
 DATA_DIR=./data
+API_PORT=8000
+CORS_ORIGINS=http://localhost:3000
 ```
 
-### 3. 입력 데이터 배치
+커스텀 엔드포인트로 전환할 때는 `*_BASE_URL`만 바꾸면 됩니다.
+
+---
+
+## 입력 데이터 배치
 
 ```
 data/input/{출원번호}/
@@ -113,24 +74,33 @@ data/input/{출원번호}/
     └── 인용발명2.json
 ```
 
-### 4. 서버 실행
+---
+
+## 프론트엔드 연동 가이드
+
+### CORS 설정
+
+`.env`의 `CORS_ORIGINS`에 프론트엔드 주소를 추가합니다.
 
 ```bash
-uv run uvicorn patent_agent.api.main:app --reload --port 8000
+CORS_ORIGINS=http://localhost:3000,https://your-domain.com
 ```
 
-Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
+### API 기본 주소
+
+```
+http://localhost:8000/api/v1
+```
 
 ---
 
-## API 사용법
+### 1. 분석 시작
 
-### 분석 시작
+```
+POST /api/v1/analysis
+Content-Type: application/json
 
-```bash
-curl -X POST http://localhost:8000/api/v1/analysis \
-  -H "Content-Type: application/json" \
-  -d '{"application_number": "10-2014-0036561"}'
+{ "application_number": "10-2014-0036561" }
 ```
 
 응답:
@@ -142,118 +112,211 @@ curl -X POST http://localhost:8000/api/v1/analysis \
 }
 ```
 
-### 진행 상황 스트림 (SSE)
+`analysis_id`를 받아 진행 상황 스트림을 구독합니다.
 
-```bash
-curl http://localhost:8000/api/v1/analysis/{analysis_id}/stream
+---
+
+### 2. 분석 진행 상황 (SSE)
+
 ```
+GET /api/v1/analysis/{analysis_id}/stream
+```
+
+서버가 단계별로 이벤트를 보냅니다:
 
 ```
 data: {"step": "통지서 분석", "ratio": 0.0, "done": false}
 data: {"step": "청구항 파싱", "ratio": 0.15, "done": false}
+data: {"step": "Claim Chart 생성·검증", "ratio": 0.45, "done": false}
+data: {"step": "공격·방어 전략 생성", "ratio": 0.65, "done": false}
+data: {"step": "보정청구항 생성", "ratio": 0.85, "done": false}
 data: {"step": "완료", "ratio": 1.0, "done": true}
 ```
 
-### 분석 결과 조회
-
-```bash
-curl http://localhost:8000/api/v1/analysis/10-2014-0036561
-```
-
-### 챗봇 질의
-
-```bash
-curl -X POST http://localhost:8000/api/v1/analysis/10-2014-0036561/chat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "messages": [{"role": "user", "content": "1-A 구성요소 차이점 설명해줘"}],
-    "active_strategy": "공격"
-  }'
-```
-
-### 편집 적용
-
-```bash
-curl -X POST http://localhost:8000/api/v1/analysis/10-2014-0036561/edits/apply \
-  -H "Content-Type: application/json" \
-  -d '{
-    "target_path": "claim_chart.charts[0].rows[0].our_match",
-    "new_value": "차이",
-    "user_instruction": "수치 범위가 실질적으로 다름"
-  }'
+```javascript
+const es = new EventSource(
+  `/api/v1/analysis/${analysisId}/stream`
+)
+es.onmessage = (e) => {
+  const { step, ratio, done } = JSON.parse(e.data)
+  updateProgressBar(ratio)
+  if (done) es.close()
+}
 ```
 
 ---
 
-## 전체 API 엔드포인트
+### 3. 분석 결과 조회
+
+```
+GET /api/v1/analysis/{application_number}
+```
+
+전체 `AnalysisResult` JSON을 반환합니다. 주요 필드:
+
+```json
+{
+  "office_action": { "rejected_claim_numbers": [1,4,5,6,7], ... },
+  "claim_parse":   { "claims": [...] },
+  "claim_chart":   { "charts": [{ "target_claim_number": 1, "rows": [...] }] },
+  "strategy": {
+    "offensive": { "rationale": "...", "proposed_action": "..." },
+    "defensive": { "rationale": "...", "proposed_action": "..." }
+  },
+  "amendment": {
+    "offensive_draft": { "amended_claims": [...] },
+    "defensive_draft": { "amended_claims": [...] }
+  }
+}
+```
+
+공격/방어 토글은 프론트엔드 state만 바꾸면 됩니다 — 추가 API 호출 없음.
+
+---
+
+### 4. 챗봇 (스트리밍)
+
+```
+POST /api/v1/analysis/{application_number}/chat/stream
+Content-Type: application/json
+
+{
+  "messages": [
+    { "role": "user", "content": "1-A 구성요소 차이점 설명해줘" }
+  ],
+  "active_strategy": "공격"
+}
+```
+
+SSE로 토큰을 실시간 전송합니다:
+
+```
+data: {"type": "token", "content": "1-A"}
+data: {"type": "token", "content": " 구성요소는"}
+data: {"type": "token", "content": " 웨트 마스터 배치..."}
+data: {"type": "proposals", "data": [...]}   ← 수정 제안 있을 때만
+data: {"type": "done"}
+```
+
+```javascript
+// fetch + ReadableStream으로 POST SSE 처리
+const response = await fetch(
+  `/api/v1/analysis/${appNo}/chat/stream`,
+  {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, active_strategy: '공격' }),
+  }
+)
+
+const reader = response.body.getReader()
+const decoder = new TextDecoder()
+
+while (true) {
+  const { done, value } = await reader.read()
+  if (done) break
+
+  const lines = decoder.decode(value).split('\n')
+  for (const line of lines) {
+    if (!line.startsWith('data: ')) continue
+    const event = JSON.parse(line.slice(6))
+
+    if (event.type === 'token') appendToken(event.content)
+    if (event.type === 'proposals') showProposals(event.data)
+    if (event.type === 'done') break
+  }
+}
+```
+
+`active_strategy`를 `"공격"` 또는 `"방어"`로 전달하면 챗봇이 해당 전략 기준으로 답변합니다.
+
+---
+
+### 5. 분석 결과 편집
+
+사용자가 Claim Chart 판정이나 보정청구항을 수정할 때:
+
+```
+POST /api/v1/analysis/{application_number}/edits/apply
+Content-Type: application/json
+
+{
+  "target_path": "claim_chart.charts[0].rows[0].our_match",
+  "new_value": "차이",
+  "user_instruction": "수치 범위가 실질적으로 다름"
+}
+```
+
+응답으로 갱신된 `AnalysisResult`(버전+1)를 반환합니다.
+
+버전 되돌리기:
+
+```
+POST /api/v1/analysis/{application_number}/edits/revert
+Content-Type: application/json
+
+{ "version": 1 }
+```
+
+---
+
+### 6. 전체 엔드포인트 요약
 
 | Method | Path | 설명 |
 |---|---|---|
-| `POST` | `/api/v1/analysis` | 분석 시작 |
-| `GET` | `/api/v1/analysis/{id}/stream` | 진행 상황 SSE |
-| `GET` | `/api/v1/analysis/{application_number}` | 결과 조회 |
-| `POST` | `/api/v1/analysis/{id}/chat` | 챗봇 질의 |
-| `POST` | `/api/v1/analysis/{id}/edits/apply` | 편집 적용 |
-| `POST` | `/api/v1/analysis/{id}/edits/revert` | 버전 되돌리기 |
+| `POST` | `/api/v1/analysis` | 분석 시작 → `analysis_id` 반환 |
+| `GET` | `/api/v1/analysis/{id}/stream` | 파이프라인 진행 상황 SSE |
+| `GET` | `/api/v1/analysis/{application_number}` | 분석 결과 전체 조회 |
+| `POST` | `/api/v1/analysis/{id}/chat` | 챗봇 (비스트리밍, 하위 호환) |
+| `POST` | `/api/v1/analysis/{id}/chat/stream` | 챗봇 스트리밍 SSE ← 권장 |
+| `POST` | `/api/v1/analysis/{id}/edits/apply` | 결과 필드 수정 적용 |
+| `POST` | `/api/v1/analysis/{id}/edits/revert` | 이전 버전으로 되돌리기 |
 
 ---
 
 ## 테스트
 
 ```bash
-# 단위 테스트 + 통합 테스트 (mock LLM)
+# 단위 + 통합 테스트 (mock LLM, API 키 불필요)
 uv run pytest tests/unit/ tests/integration/test_pipeline.py -v
 
 # E2E 시연 테스트 (실제 LLM API 호출)
-LLM_PROVIDER=claude ANTHROPIC_API_KEY=<key> \
-  uv run pytest tests/integration/test_e2e_demo.py -v -s
+uv run pytest tests/integration/test_e2e_demo.py -v -s
 ```
 
-현재 테스트 현황: **24 passed** (단위 22 + 통합 2)
-
----
-
-## LLM Provider 전환
-
-동일한 코드로 Claude와 OpenAI를 환경변수로 스위칭합니다.
-
-```bash
-# Claude 사용
-LLM_PROVIDER=claude ANTHROPIC_API_KEY=<key> uv run uvicorn ...
-
-# OpenAI 사용
-LLM_PROVIDER=openai OPENAI_API_KEY=<key> uv run uvicorn ...
-```
+현재: **24 passed** (단위 22 + 통합 2)
 
 ---
 
 ## 분석 파이프라인
 
 ```
-OfficeActionRaw ──→ Tool 1 ──→ OfficeActionResult
-PatentDoc       ──→ Tool 2 ──→ ClaimParseResult
-                    Tool 3 ──→ SpecMappingResult
-PriorArtDocs    ──→ Tool 4 ──→ ClaimChartResult  (심사관 판단 검증 포함)
-                    Tool 5 ──→ StrategyResult     (공격 + 방어 동시)
-                    Tool 6 ──→ AmendmentResult    (보정청구항 초안)
+OfficeActionRaw ──→ Tool 1 ──→ OfficeActionResult  (거절이유·인용발명 추출)
+PatentDoc       ──→ Tool 2 ──→ ClaimParseResult    (구성요소 분해)
+                    Tool 3 ──→ SpecMappingResult    (명세서 단락 매핑)
+PriorArtDocs    ──→ Tool 4 ──→ ClaimChartResult    (심사관 판단 검증)
+                    Tool 5 ──→ StrategyResult       (공격 + 방어 동시 생성)
+                    Tool 6 ──→ AmendmentResult      (보정청구항 초안)
                               ↓
-                         AnalysisResult (JSON 저장)
+                         AnalysisResult (JSON 파일 저장, 버전 관리)
 ```
 
-- **Tool 3 실패 시**: degrade & continue (spec_mapping 빈 값으로 진행)
-- **공격·방어 동시 생성**: UI에서 추가 LLM 호출 없이 토글
+- Tool 3 실패 시: degrade & continue
+- 공격·방어 두 전략은 항상 동시에 생성 — UI 토글 시 LLM 재호출 없음
 
 ---
 
-## 성공 지표
+## 프로젝트 구조
 
-| 지표 | 목표 |
-|---|---|
-| 분석 완료 시간 | ≤ 60초 |
-| 청구항 파싱 정확도 | 사람 검수 통과율 ≥ 80% |
-| Claim Chart agreement_rate | ≥ 0.85 (시스템 vs 심사관) |
-| 보정청구항 spec_basis 검증 | 100% 자동 (명세서 단락 존재 여부) |
-| 보정청구항 품질 | IP 담당자 검수 통과율 ≥ 80% |
+```
+src/patent_agent/
+├── models/          # Pydantic 데이터 모델
+├── llm/             # Claude / OpenAI provider (stream_chat 포함)
+├── prompts/         # Jinja2 프롬프트 템플릿 (.j2)
+├── tools/           # Tool 1~6 순수 함수
+├── core/            # pipeline, storage, chatbot
+└── api/             # FastAPI 라우터
+```
 
 ---
 
