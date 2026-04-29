@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+from typing import AsyncIterator
 from pydantic import BaseModel
 from patent_agent.llm.base import LLMClient, Message
 from patent_agent.models.analysis import AnalysisResult
@@ -190,3 +191,79 @@ def run_chatbot(
         message=Message(role="assistant", content="응답 생성 중 문제가 발생했습니다."),
         proposals=proposals,
     )
+
+
+async def stream_chatbot(
+    request: ChatRequest,
+    analysis: AnalysisResult,
+    llm: LLMClient,
+) -> AsyncIterator[dict]:
+    system_prompt = render(
+        "chatbot_system.j2",
+        application_number=analysis.application_number,
+        active_strategy_type=request.active_strategy,
+        rejection_reasons=analysis.office_action.rejection_reasons,
+        claim_charts=analysis.claim_chart.charts,
+        current_strategy=(
+            analysis.strategy.offensive
+            if request.active_strategy == "공격"
+            else analysis.strategy.defensive
+        ),
+        current_amendment=(
+            analysis.amendment.offensive_draft
+            if request.active_strategy == "공격"
+            else analysis.amendment.defensive_draft
+        ),
+    )
+
+    messages: list[Message] = [
+        Message(role="user", content=system_prompt),
+        Message(role="assistant", content="이해했습니다. 질문해 주세요."),
+        *request.messages[-10:],
+    ]
+
+    proposals: list[dict] = []
+
+    for _ in range(5):  # max_turns
+        tool_use_events: list[dict] = []
+        content_for_history: list = []
+        stop_reason = "end_turn"
+
+        async for event in llm.stream_chat(messages, tools=CHATBOT_TOOLS):
+            if event["type"] == "token":
+                yield event  # 토큰 즉시 SSE로 전송
+
+            elif event["type"] == "tool_use":
+                tool_use_events.append(event)
+                if event["name"].startswith("propose_"):
+                    proposals.append({"tool": event["name"], "input": event["input"]})
+
+            elif event["type"] == "done":
+                stop_reason = event["stop_reason"]
+                content_for_history = event.get("content_for_history", [])
+
+        if stop_reason != "tool_use":
+            break
+
+        # tool_use 처리: 어시스턴트 메시지 + 툴 결과 추가
+        messages.append(Message(
+            role="assistant",
+            content=json.dumps(content_for_history, ensure_ascii=False),
+        ))
+
+        tool_results = [
+            {
+                "type": "tool_result",
+                "tool_use_id": tu["id"],
+                "content": _execute_tool(tu["name"], tu["input"], analysis),
+            }
+            for tu in tool_use_events
+        ]
+        messages.append(Message(
+            role="user",
+            content=json.dumps(tool_results, ensure_ascii=False),
+        ))
+
+    if proposals:
+        yield {"type": "proposals", "data": proposals}
+    yield {"type": "done"}
