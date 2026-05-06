@@ -51,7 +51,12 @@ def run_analysis(
         c for c in claims_result.claims
         if c.claim_number in oa_result.rejected_claim_numbers
     ]
-    chart_result = build_claim_chart(target_claims, prior_arts, examiner_chart, llm)
+
+    def _tool4_cb(done: int, total: int) -> None:
+        ratio = 0.45 + (done / total) * 0.18  # 0.45 → 0.63
+        _cb(f"Claim Chart 생성·검증 ({done}/{total})", ratio)
+
+    chart_result = build_claim_chart(target_claims, prior_arts, examiner_chart, llm, _tool4_cb)
 
     _cb("공격·방어 전략 생성", 0.65)
     strategy = analyze_diff_and_strategy(chart_result, oa_result, spec_mapping, llm)

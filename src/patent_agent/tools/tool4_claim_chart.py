@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Callable
 from patent_agent.llm.base import LLMClient
 from patent_agent.models.input import PriorArtDoc
 from patent_agent.models.output import Claim, ClaimChartResult, ExaminerChart
@@ -9,8 +11,11 @@ def build_claim_chart(
     prior_arts: list[PriorArtDoc],
     examiner_chart: ExaminerChart | None,
     llm: LLMClient,
+    progress_cb: Callable[[int, int], None] | None = None,
 ) -> ClaimChartResult:
     all_charts = []
+    total = len(prior_arts) * len(target_claims)
+    done = 0
     for prior_art in prior_arts:
         for claim in target_claims:
             prompt = render(
@@ -24,4 +29,7 @@ def build_claim_chart(
                 prompt, schema=ClaimChartResult, temperature=0.0
             )
             all_charts.extend(partial.charts)
+            done += 1
+            if progress_cb and total > 0:
+                progress_cb(done, total)
     return ClaimChartResult(charts=all_charts)

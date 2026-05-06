@@ -1,7 +1,10 @@
 import os
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from patent_agent.api.routers import analysis, stream, edits, chat
+
+load_dotenv()
 
 app = FastAPI(title="Patent Agent API", version="0.1.0")
 

@@ -14,9 +14,10 @@ class OpenAIProvider:
         api_key: str,
         base_url: str,
         model: str,
+        timeout: float = 120.0,
     ) -> None:
-        self.client = openai.OpenAI(api_key=api_key, base_url=base_url)
-        self.async_client = openai.AsyncOpenAI(api_key=api_key, base_url=base_url)
+        self.client = openai.OpenAI(api_key=api_key, base_url=base_url, timeout=timeout)
+        self.async_client = openai.AsyncOpenAI(api_key=api_key, base_url=base_url, timeout=timeout)
         self.model = model
 
     def generate(self, prompt: str, schema: Type[T], temperature: float = 0.0) -> T:
@@ -25,6 +26,7 @@ class OpenAIProvider:
             input=[{"role": "user", "content": prompt}],
             text_format=schema,
             temperature=temperature,
+            max_output_tokens=8192,
         )
         return response.output_parsed
 

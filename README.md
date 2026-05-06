@@ -1,8 +1,3 @@
-# 특허 심사대응 AI 플랫폼
-
-**사용자 선택형 공격·방어 전략 기반 보정청구항 자동 생성 AI 플랫폼**
-
-43조 | 종합설계 1 | 지도교수: 조은선 교수님
 
 ---
 
@@ -317,14 +312,3 @@ src/patent_agent/
 ├── core/            # pipeline, storage, chatbot
 └── api/             # FastAPI 라우터
 ```
-
----
-
-## 팀
-
-| 이름 | 역할 |
-|---|---|
-| 박성준 | Product Owner, 파이프라인·Tool 5~6 |
-| 김상철 | Scrum Master, LLM 추상화·Tool 2~3·챗봇 |
-| 김상순 | 데이터 모델·Storage·Tool 1 |
-| 박채영 | 입력 어댑터·Tool 4·API 연동 |

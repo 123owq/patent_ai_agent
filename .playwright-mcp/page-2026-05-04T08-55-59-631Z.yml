@@ -1,0 +1,53 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e56]
+  - main [ref=e57]:
+    - generic [ref=e58]:
+      - generic [ref=e59]:
+        - paragraph [ref=e60]: Patent AI
+        - heading "분석 진행 중..." [level=2] [ref=e61]
+        - paragraph [ref=e62]: 10-2014-0036561 · 약 20-30분 소요
+      - generic [ref=e63]:
+        - generic [ref=e65]:
+          - generic [ref=e66]: 오류
+          - generic [ref=e67]: 100%
+        - generic [ref=e69]:
+          - generic [ref=e70]:
+            - generic [ref=e71]: ✓
+            - generic [ref=e72]: Office Action
+          - generic [ref=e73]:
+            - generic [ref=e74]: ✓
+            - generic [ref=e75]: Claim Parsing
+          - generic [ref=e76]:
+            - generic [ref=e77]: ✓
+            - generic [ref=e78]: Spec Mapping
+          - generic [ref=e79]:
+            - generic [ref=e80]: ✓
+            - generic [ref=e81]: Claim Chart
+          - generic [ref=e82]:
+            - generic [ref=e83]: ✓
+            - generic [ref=e84]: Strategy
+          - generic [ref=e85]:
+            - generic [ref=e86]: ✓
+            - generic [ref=e87]: Amendments
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - generic [ref=e90]: "[17시 55분 22초]"
+          - text: 통지서 분석 실행 중...
+        - generic [ref=e92]:
+          - generic [ref=e93]: "[17시 55분 22초]"
+          - text: 청구항 파싱 실행 중...
+        - generic [ref=e94]:
+          - generic [ref=e95]: "[17시 55분 22초]"
+          - text: 상세설명 매핑 실행 중...
+        - generic [ref=e96]:
+          - generic [ref=e97]: "[17시 55분 22초]"
+          - text: Claim Chart 생성·검증 실행 중...
+        - generic [ref=e98]:
+          - generic [ref=e99]: "[17시 55분 22초]"
+          - text: Claim Chart 생성·검증 (1/10) 실행 중...
+        - generic [ref=e100]:
+          - generic [ref=e101]: "[17시 55분 22초]"
+          - text: ✓ 오류 완료
+      - generic [ref=e102]:
+        - paragraph [ref=e103]: "에러: 1 validation error for ClaimChartResult Invalid JSON: EOF while parsing a string at line 12 column 42 [type=json_invalid, input_value='{\\n \"charts\": [\\n {\\...anation\": \"인용발명', input_type=str] For further information visit https://errors.pydantic.dev/2.13/v/json_invalid"
+        - button "업로드 화면으로 돌아가기" [ref=e104] [cursor=pointer]

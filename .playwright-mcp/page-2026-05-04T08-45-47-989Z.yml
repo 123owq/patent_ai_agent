@@ -1,0 +1,55 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - paragraph [ref=e4]: Patent AI
+      - heading "특허 심사대응 분석 플랫폼" [level=1] [ref=e5]
+      - paragraph [ref=e6]: 공격·방어 전략 기반 보정청구항 자동 생성 AI
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]: 출원번호 Application No.
+        - textbox "10-2024-XXXXXXX" [ref=e10]: 10-2014-0036561
+      - button "📂 JSON · PDF 파일을 드래그하거나 클릭하여 업로드 patent.json / office_action.json / prior_arts/*.json" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]: 📂
+        - paragraph [ref=e13]: JSON · PDF 파일을 드래그하거나 클릭하여 업로드
+        - paragraph [ref=e14]: patent.json / office_action.json / prior_arts/*.json
+      - generic [ref=e15]:
+        - generic [ref=e16]: 준비된 파일 (4)
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - generic [ref=e19]:
+              - generic [ref=e20]: 📝
+              - generic [ref=e21]:
+                - generic [ref=e22]: patent.json
+                - generic [ref=e23]: 출원서·청구항 · 24 KB
+            - generic [ref=e24]:
+              - generic [ref=e25]: 준비됨
+              - button "파일 제거" [ref=e26] [cursor=pointer]: ✕
+          - generic [ref=e27]:
+            - generic [ref=e28]:
+              - generic [ref=e29]: 📋
+              - generic [ref=e30]:
+                - generic [ref=e31]: office_action.json
+                - generic [ref=e32]: 거절이유통지서 · 18 KB
+            - generic [ref=e33]:
+              - generic [ref=e34]: 준비됨
+              - button "파일 제거" [ref=e35] [cursor=pointer]: ✕
+          - generic [ref=e36]:
+            - generic [ref=e37]:
+              - generic [ref=e38]: 📄
+              - generic [ref=e39]:
+                - generic [ref=e40]: 인용발명1.json
+                - generic [ref=e41]: 인용발명 · 41 KB
+            - generic [ref=e42]:
+              - generic [ref=e43]: 준비됨
+              - button "파일 제거" [ref=e44] [cursor=pointer]: ✕
+          - generic [ref=e45]:
+            - generic [ref=e46]:
+              - generic [ref=e47]: 📄
+              - generic [ref=e48]:
+                - generic [ref=e49]: 인용발명2.json
+                - generic [ref=e50]: 인용발명 · 38 KB
+            - generic [ref=e51]:
+              - generic [ref=e52]: 준비됨
+              - button "파일 제거" [ref=e53] [cursor=pointer]: ✕
+      - button "분석 시작 중..." [disabled] [ref=e57] [cursor=pointer]
+  - alert [ref=e56]

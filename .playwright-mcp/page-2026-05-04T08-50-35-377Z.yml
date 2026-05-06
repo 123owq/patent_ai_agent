@@ -1,0 +1,36 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e56]
+  - main [ref=e57]:
+    - generic [ref=e58]:
+      - generic [ref=e59]:
+        - paragraph [ref=e60]: Patent AI
+        - heading "분석 진행 중..." [level=2] [ref=e61]
+        - paragraph [ref=e62]: 10-2014-0036561 · 약 20-30분 소요
+      - generic [ref=e63]:
+        - generic [ref=e65]:
+          - generic [ref=e66]: 통지서 분석
+          - generic [ref=e67]: 0%
+        - generic [ref=e69]:
+          - generic [ref=e70]:
+            - generic [ref=e71]: "1"
+            - generic [ref=e72]: Office Action
+          - generic [ref=e73]:
+            - generic [ref=e74]: "2"
+            - generic [ref=e75]: Claim Parsing
+          - generic [ref=e76]:
+            - generic [ref=e77]: "3"
+            - generic [ref=e78]: Spec Mapping
+          - generic [ref=e79]:
+            - generic [ref=e80]: "4"
+            - generic [ref=e81]: Claim Chart
+          - generic [ref=e82]:
+            - generic [ref=e83]: "5"
+            - generic [ref=e84]: Strategy
+          - generic [ref=e85]:
+            - generic [ref=e86]: "6"
+            - generic [ref=e87]: Amendments
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - generic [ref=e90]: "[17시 50분 34초]"
+          - text: 통지서 분석 실행 중...
+        - text: ▋
