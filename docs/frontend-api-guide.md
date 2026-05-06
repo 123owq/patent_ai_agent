@@ -16,7 +16,7 @@
 
 ---
 
-## 호출 순서
+## 호출 순서 (순서 지켜야함)
 
 ```
 POST   /api/v1/analysis                                   → analysis_id 받기
