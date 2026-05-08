@@ -22,6 +22,7 @@ class OfficeActionResult(BaseModel):
     rejection_reasons: list[RejectionReason]
     rejected_claim_numbers: list[int]
     cited_arts: list[CitedArtRef]
+    examiner_chart: list[ExaminerChartRow] | None = None
 
 
 # ── Tool 2 출력 ──────────────────────────────────────────────────────
@@ -115,7 +116,7 @@ class StrategyResult(BaseModel):
 class AmendedClaim(BaseModel):
     claim_number: int
     original_text: str
-    amended_text: str
+    amended_text: str | None = None
     diff_summary: str
     spec_basis: list[str]
 

@@ -1,5 +1,8 @@
 from __future__ import annotations
+import json
+import os
 import time
+from pathlib import Path
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel
 from patent_agent.api.deps import get_llm_dep
@@ -74,6 +77,64 @@ def get_analysis(application_number: str):
         return load_analysis(application_number)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="분석 결과 없음")
+
+
+class CitedArtClaim(BaseModel):
+    claim_number: int
+    text: str
+
+
+class CitedArtParagraph(BaseModel):
+    paragraph_id: str
+    text: str
+
+
+class CitedArtDetail(BaseModel):
+    cited_art_id: str
+    document_number: str
+    title: str
+    applicant: str
+    filing_date: str
+    abstract: str
+    key_claims: list[CitedArtClaim]
+    relevant_paragraphs: list[CitedArtParagraph]
+
+
+@router.get("/{application_number}/prior-art/{cited_art_id}", response_model=CitedArtDetail)
+def get_prior_art(application_number: str, cited_art_id: str):
+    data_dir = Path(os.getenv("DATA_DIR", "./data"))
+    path = data_dir / "input" / application_number / "prior_arts" / f"{cited_art_id}.json"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="인용발명 없음")
+
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    info = raw.get("특허정보", {})
+
+    claims_raw = raw.get("특허청구범위", {})
+    key_claims = [
+        CitedArtClaim(claim_number=int(k.replace("청구항", "")), text=v)
+        for k, v in list(claims_raw.items())[:5]
+    ]
+
+    paragraphs: list[CitedArtParagraph] = []
+    for section in raw.get("명세서", {}).values():
+        if isinstance(section, list):
+            for p in section:
+                if isinstance(p, dict) and "단락번호" in p:
+                    paragraphs.append(CitedArtParagraph(paragraph_id=p["단락번호"], text=p["내용"]))
+        if len(paragraphs) >= 5:
+            break
+
+    return CitedArtDetail(
+        cited_art_id=cited_art_id,
+        document_number=info.get("등록번호") or info.get("공개번호", ""),
+        title=raw.get("발명의명칭", ""),
+        applicant=raw.get("특허권자", {}).get("명칭", ""),
+        filing_date=info.get("출원일자", ""),
+        abstract=raw.get("요약", ""),
+        key_claims=key_claims,
+        relevant_paragraphs=paragraphs[:5],
+    )
 
 
 def _adapt_patent(application_number: str, raw: dict) -> PatentDoc:

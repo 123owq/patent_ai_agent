@@ -179,8 +179,12 @@ def run_chatbot(
                 "tool_use_id": block.id,
                 "content": tool_result,
             })
-            if block.name.startswith("propose_"):
-                proposals.append({"tool": block.name, "input": block.input})
+            if block.name == "propose_patch":
+                proposals.append({
+                    "target_path": block.input["target_path"],
+                    "new_value": block.input["proposed_value"],
+                    "reason": block.input["instruction"],
+                })
 
         messages.append(Message(role="assistant",
                                 content=json.dumps(content, default=str)))
@@ -235,8 +239,12 @@ async def stream_chatbot(
 
             elif event["type"] == "tool_use":
                 tool_use_events.append(event)
-                if event["name"].startswith("propose_"):
-                    proposals.append({"tool": event["name"], "input": event["input"]})
+                if event["name"] == "propose_patch":
+                    proposals.append({
+                        "target_path": event["input"]["target_path"],
+                        "new_value": event["input"]["proposed_value"],
+                        "reason": event["input"]["instruction"],
+                    })
 
             elif event["type"] == "done":
                 stop_reason = event["stop_reason"]
