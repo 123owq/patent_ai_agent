@@ -18,7 +18,7 @@ class ClaudeProvider:
         self.async_client = anthropic.AsyncAnthropic(api_key=api_key, base_url=base_url)
         self.model = model
 
-    def generate(self, prompt: str, schema: Type[T], temperature: float = 0.0) -> T:
+    def generate(self, prompt: str, schema: Type[T], temperature: float = 0.0, max_tokens: int = 8192) -> T:
         tool_def = {
             "name": "output",
             "description": "Structured output",
@@ -26,7 +26,7 @@ class ClaudeProvider:
         }
         response = self.client.messages.create(
             model=self.model,
-            max_tokens=4096,
+            max_tokens=max_tokens,
             temperature=temperature,
             tools=[tool_def],
             tool_choice={"type": "tool", "name": "output"},
@@ -39,7 +39,7 @@ class ClaudeProvider:
         anthropic_msgs = [{"role": m.role, "content": m.content} for m in messages]
         kwargs: dict = {
             "model": self.model,
-            "max_tokens": 4096,
+            "max_tokens": 8192,
             "messages": anthropic_msgs,
         }
         if tools:
@@ -53,7 +53,7 @@ class ClaudeProvider:
         anthropic_msgs = [{"role": m.role, "content": m.content} for m in messages]
         kwargs: dict = {
             "model": self.model,
-            "max_tokens": 4096,
+            "max_tokens": 8192,
             "messages": anthropic_msgs,
         }
         if tools:
