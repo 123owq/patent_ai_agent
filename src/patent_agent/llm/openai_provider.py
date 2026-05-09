@@ -8,6 +8,27 @@ from patent_agent.llm.base import Message
 T = TypeVar("T", bound=BaseModel)
 
 
+def _extract_json(text: str) -> str:
+    # 마크다운 코드블록 제거
+    if "```" in text:
+        lines = text.split("\n")
+        inside = False
+        extracted = []
+        for line in lines:
+            if line.startswith("```"):
+                inside = not inside
+                continue
+            if inside:
+                extracted.append(line)
+        text = "\n".join(extracted)
+    # 첫 { 부터 마지막 } 까지만 추출
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1:
+        return text[start:end + 1]
+    return text
+
+
 class _TextBlock:
     def __init__(self, text: str) -> None:
         self.type = "text"
@@ -34,7 +55,7 @@ class OpenAIProvider:
         self.async_client = openai.AsyncOpenAI(api_key=api_key, base_url=base_url, timeout=timeout)
         self.model = model
 
-    def generate(self, prompt: str, schema: Type[T], temperature: float = 0.0, max_tokens: int = 8192) -> T:
+    def generate(self, prompt: str, schema: Type[T], temperature: float = 0.0, max_tokens: int = 16384) -> T:
         tool = {
             "type": "function",
             "function": {
@@ -52,7 +73,7 @@ class OpenAIProvider:
             max_tokens=max_tokens,
         )
         arguments = response.choices[0].message.tool_calls[0].function.arguments
-        return schema.model_validate_json(arguments)
+        return schema.model_validate_json(_extract_json(arguments))
 
     def chat(self, messages: list[Message], tools: list[dict] | None = None) -> dict:
         oai_msgs = [{"role": m.role, "content": m.content} for m in messages]

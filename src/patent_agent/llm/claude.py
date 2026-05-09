@@ -18,7 +18,7 @@ class ClaudeProvider:
         self.async_client = anthropic.AsyncAnthropic(api_key=api_key, base_url=base_url)
         self.model = model
 
-    def generate(self, prompt: str, schema: Type[T], temperature: float = 0.0, max_tokens: int = 8192) -> T:
+    def generate(self, prompt: str, schema: Type[T], temperature: float = 0.0, max_tokens: int = 16384) -> T:
         tool_def = {
             "name": "output",
             "description": "Structured output",

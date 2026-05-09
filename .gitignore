@@ -8,3 +8,4 @@ dist/
 .pytest_cache/
 .ruff_cache/
 P_docs/
+ppt_docs/
