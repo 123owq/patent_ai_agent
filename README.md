@@ -39,7 +39,7 @@ Swagger UI (API 직접 테스트): `http://localhost:8000/docs`
 ## 환경변수 (.env)
 
 ```bash
-LLM_PROVIDER=openai              # claude 또는 openai
+LLM_PROVIDER=claude              # claude | openai | recording
 
 # Claude
 ANTHROPIC_API_KEY=sk-ant-...
@@ -50,6 +50,10 @@ CLAUDE_MODEL=claude-sonnet-4-6
 OPENAI_API_KEY=sk-...
 OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_MODEL=gpt-4.1
+
+# recording 모드 전용
+RECORDING_REAL_PROVIDER=claude   # 캐시 미스 시 실제로 호출할 provider
+CASSETTE_DIR=tests/cassettes     # cassette 파일 저장 경로
 
 DATA_DIR=./data
 API_PORT=8000
@@ -257,17 +261,53 @@ Content-Type: application/json
 
 ---
 
-### 6. 전체 엔드포인트 요약
+### 6. 단계별 조회·재실행·채팅
+
+`step_name` 유효값: `office_action` · `claim_parse` · `spec_mapping` · `claim_chart` · `strategy` · `amendment`
+
+```
+GET  /api/v1/analysis/{application_number}/steps/{step_name}
+```
+해당 단계 결과만 반환합니다.
+
+```
+POST /api/v1/analysis/{application_number}/steps/{step_name}/regenerate
+```
+해당 단계부터 끝까지 재실행합니다. `regen_id`를 반환하며, 기존 스트림 엔드포인트로 진행 상황을 구독합니다.
+
+```json
+{ "regen_id": "1714300000-10-2014-0036561", "step_name": "strategy", "status": "started" }
+```
+
+```javascript
+// 재실행 진행 상황 구독 — 기존 SSE 그대로 사용
+const es = new EventSource(`/api/v1/analysis/${regenId}/stream`)
+```
+
+```
+POST /api/v1/analysis/{application_number}/steps/{step_name}/chat
+POST /api/v1/analysis/{application_number}/steps/{step_name}/chat/stream
+```
+해당 단계 컨텍스트만 참고하는 채팅입니다. 요청/응답 형식은 전체 챗봇과 동일합니다.
+
+---
+
+### 7. 전체 엔드포인트 요약
 
 | Method | Path | 설명 |
 |---|---|---|
 | `POST` | `/api/v1/analysis` | 분석 시작 → `analysis_id` 반환 |
 | `GET` | `/api/v1/analysis/{id}/stream` | 파이프라인 진행 상황 SSE |
 | `GET` | `/api/v1/analysis/{application_number}` | 분석 결과 전체 조회 |
+| `GET` | `/api/v1/analysis/{application_number}/prior-art/{id}` | 인용발명 상세 조회 |
 | `POST` | `/api/v1/analysis/{id}/chat` | 챗봇 (비스트리밍, 하위 호환) |
 | `POST` | `/api/v1/analysis/{id}/chat/stream` | 챗봇 스트리밍 SSE ← 권장 |
 | `POST` | `/api/v1/analysis/{id}/edits/apply` | 결과 필드 수정 적용 |
 | `POST` | `/api/v1/analysis/{id}/edits/revert` | 이전 버전으로 되돌리기 |
+| `GET` | `/api/v1/analysis/{id}/steps/{step_name}` | 단계 결과 조회 |
+| `POST` | `/api/v1/analysis/{id}/steps/{step_name}/regenerate` | 해당 단계부터 재실행 |
+| `POST` | `/api/v1/analysis/{id}/steps/{step_name}/chat` | 단계 범위 챗봇 |
+| `POST` | `/api/v1/analysis/{id}/steps/{step_name}/chat/stream` | 단계 범위 챗봇 스트리밍 |
 
 ---
 
@@ -282,6 +322,27 @@ uv run pytest tests/integration/test_e2e_demo.py -v -s
 ```
 
 현재: **24 passed** (단위 22 + 통합 2)
+
+---
+
+## recording 모드 (LLM 캐싱)
+
+파이프라인 전체 실행이 30분 이상 걸리는 문제를 해결하기 위해 **recording 모드**를 지원합니다.
+
+**동작 방식**: LLM에 보내는 프롬프트를 해시해서 `cassettes/` 폴더에서 찾음 → 있으면 즉시 반환, 없으면 실제 LLM 호출 후 저장.
+
+```bash
+# 처음 한 번: 실제 LLM 호출하면서 cassette 저장
+LLM_PROVIDER=recording RECORDING_REAL_PROVIDER=claude uv run uvicorn patent_agent.api.main:app --reload
+
+# 이후: 캐시 우선 (미스 시에만 실제 LLM 호출)
+LLM_PROVIDER=recording uv run uvicorn patent_agent.api.main:app --reload
+```
+
+- 파이프라인 tool1~6: 프롬프트가 바뀌지 않으면 항상 캐시 히트 → 즉시 응답
+- 챗봇: 새 질문은 실제 LLM 호출, 같은 질문 재시도 시 캐시 히트
+- 프롬프트 수정 시: 해시가 달라져 자동으로 새로 LLM 호출 + 저장
+- cassette 파일은 `tests/cassettes/*.json`에 저장 (경로는 `CASSETTE_DIR`로 변경 가능)
 
 ---
 
@@ -308,9 +369,10 @@ PriorArtDocs    ──→ Tool 4 ──→ ClaimChartResult    (심사관 판단
 ```
 src/patent_agent/
 ├── models/          # Pydantic 데이터 모델
-├── llm/             # Claude / OpenAI provider (stream_chat 포함)
+├── llm/             # Claude / OpenAI / Recording provider
 ├── prompts/         # Jinja2 프롬프트 템플릿 (.j2)
 ├── tools/           # Tool 1~6 순수 함수
-├── core/            # pipeline, storage, chatbot
-└── api/             # FastAPI 라우터
+├── core/            # pipeline, storage, chatbot, step_chatbot
+└── api/
+    └── routers/     # analysis, stream, edits, chat, steps
 ```
