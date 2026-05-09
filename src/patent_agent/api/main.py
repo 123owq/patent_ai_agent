@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from patent_agent.api.routers import analysis, stream, edits, chat
+from patent_agent.api.routers import analysis, stream, edits, chat, steps
 
 load_dotenv()
 
@@ -18,3 +18,4 @@ app.include_router(analysis.router)
 app.include_router(stream.router)
 app.include_router(edits.router)
 app.include_router(chat.router)
+app.include_router(steps.router)
