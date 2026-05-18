@@ -70,6 +70,7 @@ def rerun_strategy(
     updated = AnalysisResult(
         analysis_id=existing.analysis_id,
         application_number=existing.application_number,
+        llm_model=existing.llm_model or getattr(llm, "model", ""),
         created_at=existing.created_at,
         version=existing.version + 1,
         source_files=existing.source_files,
@@ -110,6 +111,7 @@ def rerun_amendment(
     updated = AnalysisResult(
         analysis_id=existing.analysis_id,
         application_number=existing.application_number,
+        llm_model=existing.llm_model or getattr(llm, "model", ""),
         created_at=existing.created_at,
         version=existing.version + 1,
         source_files=existing.source_files,

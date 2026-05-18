@@ -5,8 +5,16 @@ from pathlib import Path
 from patent_agent.models.analysis import AnalysisResult
 
 
+def _model_dir() -> str:
+    model = os.getenv("OPENAI_MODEL") or os.getenv("CLAUDE_MODEL") or ""
+    return model.replace("/", "__") if model else ""
+
+
 def _analysis_dir(application_number: str) -> Path:
     data_dir = Path(os.getenv("DATA_DIR", "./data"))
+    model = _model_dir()
+    if model:
+        return data_dir / "analysis" / application_number / model
     return data_dir / "analysis" / application_number
 
 

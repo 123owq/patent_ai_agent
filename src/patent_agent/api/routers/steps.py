@@ -94,7 +94,8 @@ async def regenerate_from_step(
                     {"step": step, "ratio": ratio, "done": ratio >= 1.0}
                 )
 
-            run_from_step(step_name, existing, patent, oa, prior_arts, llm, progress_cb)
+            run_from_step(step_name, existing, patent, oa, prior_arts, llm, progress_cb,
+                          llm_model=getattr(llm, "model", ""))
         except Exception as e:
             _progress_store[regen_id].append(
                 {"step": "오류", "ratio": 1.0, "done": True, "error": str(e)}

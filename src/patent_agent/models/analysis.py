@@ -16,6 +16,7 @@ from patent_agent.models.output import (
 class AnalysisResult(BaseModel):
     analysis_id: str
     application_number: str
+    llm_model: str = ""
     created_at: datetime = Field(default_factory=datetime.now)
     version: int = 1
     source_files: dict[str, str] = {}

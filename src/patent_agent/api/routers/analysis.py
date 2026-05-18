@@ -40,8 +40,23 @@ async def start_analysis(
     llm: LLMClient = Depends(get_llm_dep),
 ):
     application_number = req.application_number
+    llm_model: str = getattr(llm, "model", "")
     analysis_id = f"{int(time.time())}-{application_number}"
     _progress_store[analysis_id] = []
+
+    # 동일 출원번호 + 동일 모델 결과가 이미 있으면 파이프라인 스킵
+    try:
+        cached = load_analysis(application_number)
+        if cached.llm_model == llm_model:
+            _progress_store[analysis_id].append(
+                {"step": "완료 (캐시)", "ratio": 1.0, "done": True}
+            )
+            return StartAnalysisResponse(
+                analysis_id=analysis_id,
+                application_number=application_number,
+            )
+    except FileNotFoundError:
+        pass
 
     def _run():
         try:
@@ -58,7 +73,7 @@ async def start_analysis(
                     {"step": step, "ratio": ratio, "done": ratio >= 1.0}
                 )
 
-            run_analysis(patent, oa, prior_arts, llm, progress_cb)
+            run_analysis(patent, oa, prior_arts, llm, progress_cb, llm_model=llm_model)
         except Exception as e:
             _progress_store[analysis_id].append(
                 {"step": "오류", "ratio": 1.0, "done": True, "error": str(e)}

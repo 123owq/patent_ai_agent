@@ -33,6 +33,7 @@ def run_analysis(
     prior_arts: list[PriorArtDoc],
     llm: LLMClient,
     progress_cb: Callable[[str, float], None] | None = None,
+    llm_model: str = "",
 ) -> AnalysisResult:
     errors: list[ToolError] = []
     _cb = progress_cb or (lambda s, r: None)
@@ -96,6 +97,7 @@ def run_analysis(
     result = AnalysisResult(
         analysis_id=analysis_id,
         application_number=patent.application_number,
+        llm_model=llm_model,
         created_at=datetime.now(),
         version=1,
         source_files={},
@@ -120,6 +122,7 @@ def run_from_step(
     prior_arts: list[PriorArtDoc],
     llm: LLMClient,
     progress_cb: Callable[[str, float], None] | None = None,
+    llm_model: str = "",
 ) -> AnalysisResult:
     if step_name not in STEP_ORDER:
         raise ValueError(f"Unknown step: {step_name!r}. Valid: {STEP_ORDER}")
@@ -198,6 +201,7 @@ def run_from_step(
     result = AnalysisResult(
         analysis_id=analysis_id,
         application_number=patent.application_number,
+        llm_model=llm_model or existing.llm_model,
         created_at=existing.created_at,
         version=existing.version + 1,
         source_files=existing.source_files,

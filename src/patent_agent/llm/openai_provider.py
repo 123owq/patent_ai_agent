@@ -74,7 +74,14 @@ class OpenAIProvider:
             temperature=temperature,
             max_tokens=max_tokens,
         )
-        arguments = response.choices[0].message.tool_calls[0].function.arguments
+        if not response.choices:
+            raise ValueError(f"LLM 응답에 choices 없음: {getattr(response, 'error', response)}")
+        msg = response.choices[0].message
+        tool_calls = msg.tool_calls
+        if tool_calls:
+            arguments = tool_calls[0].function.arguments
+        else:
+            arguments = msg.content or "{}"
         return schema.model_validate_json(_extract_json(arguments))
 
     def chat(self, messages: list[Message], tools: list[dict] | None = None) -> dict:
