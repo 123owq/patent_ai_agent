@@ -19,6 +19,11 @@
 - {{ reason.rejection_type }} ({{ reason.article }}): {{ reason.examiner_reasoning[:300] }}
 {% endfor %}
 
+{% if user_instruction %}
+## ⚡ 사용자 추가 요청 (최우선 반영)
+{{ user_instruction }}
+
+{% endif %}
 ## 공격적 전략 작성 지침
 1. "agreement=불일치 + our_match=차이 + examiner_match=동일/유사" 항목에 집중하세요 (심사관 이의 제기 근거).
 2. leveraged_differences에는 활용하는 element_id를 나열하세요.

@@ -17,6 +17,7 @@ def generate_amendments(
     spec_mapping: SpecMappingResult,
     llm: LLMClient,
     spec_paragraphs: dict[str, str] | None = None,
+    user_instruction: str | None = None,
 ) -> AmendmentResult:
     all_spec_paragraphs: dict[str, str] = spec_paragraphs or {}
     rejected_claims = claims.claims  # 파이프라인에서 거절 청구항만 넘김
@@ -26,6 +27,7 @@ def generate_amendments(
         "tool6_offensive.j2",
         strategy=strategy.offensive,
         rejected_claims=rejected_claims,
+        user_instruction=user_instruction,
     )
     offensive_result: AmendmentResult = llm.generate(
         prompt_offensive, schema=AmendmentResult, temperature=0.0
@@ -45,6 +47,7 @@ def generate_amendments(
         rejected_claims=rejected_claims,
         relevant_mappings=relevant_mappings,
         spec_paragraphs=defensive_spec,
+        user_instruction=user_instruction,
     )
     defensive_result: AmendmentResult = llm.generate(
         prompt_defensive, schema=AmendmentResult, temperature=0.0

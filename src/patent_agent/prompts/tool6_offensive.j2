@@ -11,6 +11,11 @@
 
 {% endfor %}
 
+{% if user_instruction %}
+## ⚡ 사용자 추가 요청 (최우선 반영)
+{{ user_instruction }}
+
+{% endif %}
 ## 작성 지침
 1. 공격적 전략에서 ClaimChart 불일치가 충분하면 청구항 텍스트를 그대로 유지하고
    amended_text를 original_text와 동일하게 작성하세요.

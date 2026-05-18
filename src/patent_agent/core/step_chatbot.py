@@ -235,12 +235,8 @@ def run_step_chatbot(
                 "tool_use_id": block.id,
                 "content": tool_result,
             })
-            if block.name == "propose_patch":
-                proposals.append({
-                    "target_path": block.input["target_path"],
-                    "new_value": block.input["proposed_value"],
-                    "reason": block.input["instruction"],
-                })
+            if block.name in ("propose_patch", "propose_regenerate"):
+                proposals.append({"tool": block.name, "input": block.input})
 
         messages.append(Message(role="assistant",
                                 content=json.dumps(content, default=str)))
@@ -285,12 +281,8 @@ async def stream_step_chatbot(
 
             elif event["type"] == "tool_use":
                 tool_use_events.append(event)
-                if event["name"] == "propose_patch":
-                    proposals.append({
-                        "target_path": event["input"]["target_path"],
-                        "new_value": event["input"]["proposed_value"],
-                        "reason": event["input"]["instruction"],
-                    })
+                if event["name"] in ("propose_patch", "propose_regenerate"):
+                    proposals.append({"tool": event["name"], "input": event["input"]})
 
             elif event["type"] == "done":
                 stop_reason = event["stop_reason"]

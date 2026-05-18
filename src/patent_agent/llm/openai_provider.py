@@ -24,8 +24,10 @@ def _extract_json(text: str) -> str:
     # 첫 { 부터 마지막 } 까지만 추출
     start = text.find("{")
     end = text.rfind("}")
-    if start != -1 and end != -1:
+    if start != -1 and end != -1 and end >= start:
         return text[start:end + 1]
+    if start != -1:
+        return text[start:]  # 닫는 } 없어도 일단 넘김 — Pydantic이 에러 처리
     return text
 
 
@@ -124,45 +126,49 @@ class OpenAIProvider:
 
         tool_calls_acc: dict[int, dict] = {}
 
-        async with self.async_client.chat.completions.stream(**kwargs) as stream:
-            async for chunk in stream:
-                choice = chunk.choices[0]
-                delta = choice.delta
+        response_stream = await self.async_client.chat.completions.create(
+            stream=True, **kwargs
+        )
+        async for chunk in response_stream:
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            delta = choice.delta
 
-                if delta.content:
-                    yield {"type": "token", "content": delta.content}
+            if delta.content:
+                yield {"type": "token", "content": delta.content}
 
-                if delta.tool_calls:
-                    for tc in delta.tool_calls:
-                        idx = tc.index
-                        if idx not in tool_calls_acc:
-                            tool_calls_acc[idx] = {
-                                "id": tc.id or "",
-                                "name": tc.function.name or "",
-                                "arguments": "",
-                            }
-                        if tc.function and tc.function.arguments:
-                            tool_calls_acc[idx]["arguments"] += tc.function.arguments
+            if delta.tool_calls:
+                for tc in delta.tool_calls:
+                    idx = tc.index
+                    if idx not in tool_calls_acc:
+                        tool_calls_acc[idx] = {
+                            "id": tc.id or "",
+                            "name": tc.function.name or "",
+                            "arguments": "",
+                        }
+                    if tc.function and tc.function.arguments:
+                        tool_calls_acc[idx]["arguments"] += tc.function.arguments
 
-                if choice.finish_reason:
-                    if choice.finish_reason == "tool_calls":
-                        tool_calls_list = []
-                        for tc_data in tool_calls_acc.values():
-                            try:
-                                input_data = json.loads(tc_data["arguments"])
-                            except Exception:
-                                input_data = {}
-                            yield {"type": "tool_use", "name": tc_data["name"],
-                                   "input": input_data, "id": tc_data["id"]}
-                            tool_calls_list.append({
-                                "id": tc_data["id"], "type": "function",
-                                "function": {"name": tc_data["name"],
-                                             "arguments": tc_data["arguments"]},
-                            })
-                        yield {"type": "done", "stop_reason": "tool_use",
-                               "content_for_history": [
-                                   {"role": "assistant", "tool_calls": tool_calls_list}
-                               ]}
-                    else:
-                        yield {"type": "done", "stop_reason": choice.finish_reason,
-                               "content_for_history": []}
+            if choice.finish_reason:
+                if choice.finish_reason == "tool_calls":
+                    tool_calls_list = []
+                    for tc_data in tool_calls_acc.values():
+                        try:
+                            input_data = json.loads(tc_data["arguments"])
+                        except Exception:
+                            input_data = {}
+                        yield {"type": "tool_use", "name": tc_data["name"],
+                               "input": input_data, "id": tc_data["id"]}
+                        tool_calls_list.append({
+                            "id": tc_data["id"], "type": "function",
+                            "function": {"name": tc_data["name"],
+                                         "arguments": tc_data["arguments"]},
+                        })
+                    yield {"type": "done", "stop_reason": "tool_use",
+                           "content_for_history": [
+                               {"role": "assistant", "tool_calls": tool_calls_list}
+                           ]}
+                else:
+                    yield {"type": "done", "stop_reason": choice.finish_reason,
+                           "content_for_history": []}

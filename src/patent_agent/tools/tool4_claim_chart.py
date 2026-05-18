@@ -25,10 +25,13 @@ def build_claim_chart(
                 prior_art=prior_art,
                 examiner_chart=examiner_chart,
             )
-            partial: ClaimChartResult = llm.generate(
-                prompt, schema=ClaimChartResult, temperature=0.0
-            )
-            all_charts.extend(partial.charts)
+            try:
+                partial: ClaimChartResult = llm.generate(
+                    prompt, schema=ClaimChartResult, temperature=0.0
+                )
+                all_charts.extend(partial.charts)
+            except Exception:
+                pass  # 개별 쌍 실패 시 건너뜀 — 전체 파이프라인 유지
             done += 1
             if progress_cb and total > 0:
                 progress_cb(done, total)
