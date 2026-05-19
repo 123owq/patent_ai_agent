@@ -21,7 +21,7 @@
 
 ## 빠른 시작
 
-```bash
+```bash\  
 # 1. 의존성 설치
 uv sync --extra dev
 

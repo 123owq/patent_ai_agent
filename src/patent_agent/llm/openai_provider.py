@@ -1,5 +1,8 @@
 from __future__ import annotations
+from datetime import datetime
 import json
+import os
+from pathlib import Path
 from typing import AsyncIterator, Type, TypeVar
 import openai
 from pydantic import BaseModel
@@ -31,6 +34,16 @@ def _extract_json(text: str) -> str:
     return text
 
 
+def _sanitize_path_part(value: str) -> str:
+    safe = []
+    for ch in value:
+        if ch.isalnum() or ch in ("-", "_", "."):
+            safe.append(ch)
+        else:
+            safe.append("_")
+    return "".join(safe).strip("_") or "unknown"
+
+
 class _TextBlock:
     def __init__(self, text: str) -> None:
         self.type = "text"
@@ -55,38 +68,132 @@ class OpenAIProvider:
     ) -> None:
         self.client = openai.OpenAI(api_key=api_key, base_url=base_url, timeout=timeout)
         self.async_client = openai.AsyncOpenAI(api_key=api_key, base_url=base_url, timeout=timeout)
+        self.base_url = base_url
         self.model = model
 
-    def generate(self, prompt: str, schema: Type[T], temperature: float = 0.0, max_tokens: int = 16384) -> T:
-        tool = {
-            "type": "function",
-            "function": {
-                "name": "output",
-                "description": "Structured output",
-                "parameters": schema.model_json_schema(),
-            },
+    def _openrouter_extra_body(self) -> dict | None:
+        if "openrouter.ai" not in self.base_url:
+            return None
+        return {"provider": {"require_parameters": True}}
+
+    def _supports_temperature(self) -> bool:
+        return "gpt-5" not in self.model.lower()
+
+    def _uses_response_format_json_schema(self) -> bool:
+        return "gemini" in self.model.lower()
+
+    def _write_generate_debug_log(
+        self,
+        schema_name: str,
+        *,
+        finish_reason: str | None,
+        had_tool_calls: bool,
+        tool_call_name: str | None,
+        raw_content: str | None,
+        raw_arguments: str,
+        extracted_json: str,
+        validation_error: Exception,
+    ) -> None:
+        if os.getenv("LLM_DEBUG_RAW", "").lower() not in {"1", "true", "yes", "on"}:
+            return
+
+        data_dir = Path(os.getenv("DATA_DIR", "./data"))
+        model_dir = _sanitize_path_part(self.model)
+        directory = data_dir / "debug" / "llm" / model_dir
+        directory.mkdir(parents=True, exist_ok=True)
+
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        path = directory / f"{timestamp}-{_sanitize_path_part(schema_name)}.json"
+        payload = {
+            "model": self.model,
+            "base_url": self.base_url,
+            "schema": schema_name,
+            "finish_reason": finish_reason,
+            "had_tool_calls": had_tool_calls,
+            "tool_call_name": tool_call_name,
+            "raw_content": raw_content,
+            "raw_arguments": raw_arguments,
+            "extracted_json": extracted_json,
+            "validation_error": str(validation_error),
         }
+        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    def generate(self, prompt: str, schema: Type[T], temperature: float = 0.0, max_tokens: int = 16384) -> T:
+        schema_json = schema.model_json_schema()
+        extra_body = self._openrouter_extra_body()
+        kwargs: dict = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+        }
+        if self._uses_response_format_json_schema():
+            kwargs["messages"] = [{
+                "role": "user",
+                "content": (
+                    f"{prompt}\n\n"
+                    "Return only a JSON object that conforms to the response_format schema. "
+                    "Do not include markdown fences or explanations."
+                ),
+            }]
+            kwargs["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "output",
+                    "strict": True,
+                    "schema": schema_json,
+                },
+            }
+        else:
+            tool = {
+                "type": "function",
+                "function": {
+                    "name": "output",
+                    "description": "Structured output",
+                    "parameters": schema_json,
+                },
+            }
+            kwargs["tools"] = [tool]
+            kwargs["tool_choice"] = {"type": "function", "function": {"name": "output"}}
+        if self._supports_temperature():
+            kwargs["temperature"] = temperature
+        if extra_body:
+            kwargs["extra_body"] = extra_body
         response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            tools=[tool],
-            tool_choice={"type": "function", "function": {"name": "output"}},
-            temperature=temperature,
-            max_tokens=max_tokens,
+            **kwargs,
         )
         if not response.choices:
             raise ValueError(f"LLM 응답에 choices 없음: {getattr(response, 'error', response)}")
-        msg = response.choices[0].message
+        choice = response.choices[0]
+        msg = choice.message
         tool_calls = msg.tool_calls
-        if tool_calls:
+        if self._uses_response_format_json_schema():
+            arguments = msg.content or "{}"
+        elif tool_calls:
             arguments = tool_calls[0].function.arguments
         else:
             arguments = msg.content or "{}"
-        return schema.model_validate_json(_extract_json(arguments))
+        extracted = _extract_json(arguments)
+        try:
+            return schema.model_validate_json(extracted)
+        except Exception as e:
+            self._write_generate_debug_log(
+                schema.__name__,
+                finish_reason=choice.finish_reason,
+                had_tool_calls=bool(tool_calls),
+                tool_call_name=tool_calls[0].function.name if tool_calls else None,
+                raw_content=msg.content,
+                raw_arguments=arguments,
+                extracted_json=extracted,
+                validation_error=e,
+            )
+            raise
 
     def chat(self, messages: list[Message], tools: list[dict] | None = None) -> dict:
         oai_msgs = [{"role": m.role, "content": m.content} for m in messages]
         kwargs: dict = {"model": self.model, "messages": oai_msgs, "max_tokens": 8192}
+        extra_body = self._openrouter_extra_body()
+        if extra_body:
+            kwargs["extra_body"] = extra_body
         if tools:
             kwargs["tools"] = [
                 {"type": "function", "function": {
@@ -120,6 +227,9 @@ class OpenAIProvider:
     ) -> AsyncIterator[dict]:
         oai_msgs = [{"role": m.role, "content": m.content} for m in messages]
         kwargs: dict = {"model": self.model, "messages": oai_msgs, "max_tokens": 8192}
+        extra_body = self._openrouter_extra_body()
+        if extra_body:
+            kwargs["extra_body"] = extra_body
         if tools:
             # chat.completions 형식으로 변환 (Responses API보다 streaming 안정적)
             kwargs["tools"] = [
