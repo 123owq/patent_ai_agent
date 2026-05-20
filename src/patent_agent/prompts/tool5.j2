@@ -5,6 +5,9 @@
 방어적 전략 = 거절이유를 극복하기 위해 청구항에 구성요소를 추가 한정하여 등록 가능성을 높이는 전략.
 
 ## Claim Chart 분석 결과
+{% if not claim_charts %}
+제공된 Claim Chart 항목이 없습니다. 이 경우에도 빈 객체를 반환하지 말고, 거절이유 요약을 근거로 보수적인 기본 전략을 수립하십시오.
+{% endif %}
 {% for chart in claim_charts %}
 청구항 {{ chart.target_claim_number }}항:
 {% for row in chart.rows %}
@@ -34,3 +37,11 @@
 2. 해당 명세서 기재를 근거로 청구항에 추가 한정할 내용을 제안하세요.
 3. 모든 추가 한정은 반드시 최초 명세서 기재 사항 범위 내여야 합니다.
 4. leveraged_differences에는 추가 한정이 필요한 element_id를 나열하세요.
+
+## 출력 필수 조건
+- 반드시 StrategyResult 객체를 반환하십시오.
+- 최상위에는 offensive와 defensive를 모두 포함하십시오.
+- 빈 객체({})를 반환하지 마십시오.
+- 활용할 element_id가 없으면 leveraged_differences는 빈 리스트 []로 두십시오.
+- 근거가 약한 경우에도 rationale과 proposed_action에는 그 이유와 보수적 대응 방향을 간단히 쓰십시오.
+- strategy_type은 offensive에는 "공격", defensive에는 "방어"를 사용하십시오.

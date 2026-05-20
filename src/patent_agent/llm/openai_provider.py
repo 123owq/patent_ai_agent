@@ -44,6 +44,27 @@ def _sanitize_path_part(value: str) -> str:
     return "".join(safe).strip("_") or "unknown"
 
 
+def _to_openai_strict_json_schema(schema: dict) -> dict:
+    """Convert Pydantic JSON Schema to OpenAI strict structured-output schema."""
+    if isinstance(schema, list):
+        return [_to_openai_strict_json_schema(item) for item in schema]
+    if not isinstance(schema, dict):
+        return schema
+
+    converted = {
+        key: _to_openai_strict_json_schema(value)
+        for key, value in schema.items()
+        if key != "default"
+    }
+    properties = converted.get("properties")
+    if isinstance(properties, dict):
+        converted["additionalProperties"] = False
+        converted["required"] = list(properties.keys())
+    elif converted.get("type") == "object":
+        converted["additionalProperties"] = False
+    return converted
+
+
 class _TextBlock:
     def __init__(self, text: str) -> None:
         self.type = "text"
@@ -78,9 +99,6 @@ class OpenAIProvider:
 
     def _supports_temperature(self) -> bool:
         return "gpt-5" not in self.model.lower()
-
-    def _uses_response_format_json_schema(self) -> bool:
-        return "gemini" in self.model.lower()
 
     def _write_generate_debug_log(
         self,
@@ -119,41 +137,30 @@ class OpenAIProvider:
         path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
     def generate(self, prompt: str, schema: Type[T], temperature: float = 0.0, max_tokens: int = 16384) -> T:
-        schema_json = schema.model_json_schema()
+        schema_json = _to_openai_strict_json_schema(schema.model_json_schema())
         extra_body = self._openrouter_extra_body()
+        message_content = (
+            f"{prompt}\n\n"
+            "Return only a JSON object that conforms to the response_format schema. "
+            "Do not include markdown fences or explanations. "
+            "Include every schema field; use null or [] when a field is not applicable."
+        )
         kwargs: dict = {
             "model": self.model,
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": max_tokens,
-        }
-        if self._uses_response_format_json_schema():
-            kwargs["messages"] = [{
+            "messages": [{
                 "role": "user",
-                "content": (
-                    f"{prompt}\n\n"
-                    "Return only a JSON object that conforms to the response_format schema. "
-                    "Do not include markdown fences or explanations."
-                ),
-            }]
-            kwargs["response_format"] = {
+                "content": message_content,
+            }],
+            "response_format": {
                 "type": "json_schema",
                 "json_schema": {
                     "name": "output",
                     "strict": True,
                     "schema": schema_json,
                 },
-            }
-        else:
-            tool = {
-                "type": "function",
-                "function": {
-                    "name": "output",
-                    "description": "Structured output",
-                    "parameters": schema_json,
-                },
-            }
-            kwargs["tools"] = [tool]
-            kwargs["tool_choice"] = {"type": "function", "function": {"name": "output"}}
+            },
+            "max_tokens": max_tokens,
+        }
         if self._supports_temperature():
             kwargs["temperature"] = temperature
         if extra_body:
@@ -166,12 +173,20 @@ class OpenAIProvider:
         choice = response.choices[0]
         msg = choice.message
         tool_calls = msg.tool_calls
-        if self._uses_response_format_json_schema():
-            arguments = msg.content or "{}"
-        elif tool_calls:
-            arguments = tool_calls[0].function.arguments
-        else:
-            arguments = msg.content or "{}"
+        arguments = msg.content
+        if not arguments:
+            error = ValueError("LLM returned empty content for structured generate().")
+            self._write_generate_debug_log(
+                schema.__name__,
+                finish_reason=choice.finish_reason,
+                had_tool_calls=bool(tool_calls),
+                tool_call_name=tool_calls[0].function.name if tool_calls else None,
+                raw_content=msg.content,
+                raw_arguments="",
+                extracted_json="",
+                validation_error=error,
+            )
+            raise error
         extracted = _extract_json(arguments)
         try:
             return schema.model_validate_json(extracted)

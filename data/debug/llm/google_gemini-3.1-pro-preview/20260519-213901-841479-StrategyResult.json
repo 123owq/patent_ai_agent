@@ -1,0 +1,12 @@
+{
+  "model": "google/gemini-3.1-pro-preview",
+  "base_url": "https://openrouter.ai/api/v1",
+  "schema": "StrategyResult",
+  "finish_reason": null,
+  "had_tool_calls": false,
+  "tool_call_name": null,
+  "raw_content": null,
+  "raw_arguments": "{}",
+  "extracted_json": "{}",
+  "validation_error": "2 validation errors for StrategyResult\noffensive\n  Field required [type=missing, input_value={}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\ndefensive\n  Field required [type=missing, input_value={}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing"
+}

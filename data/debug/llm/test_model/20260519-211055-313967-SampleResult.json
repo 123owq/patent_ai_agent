@@ -1,0 +1,12 @@
+{
+  "model": "test/model",
+  "base_url": "https://openrouter.ai/api/v1",
+  "schema": "_SampleResult",
+  "finish_reason": null,
+  "had_tool_calls": false,
+  "tool_call_name": null,
+  "raw_content": "{\"value\": \"broken\"",
+  "raw_arguments": "{\"value\": \"broken\"",
+  "extracted_json": "{\"value\": \"broken\"",
+  "validation_error": "1 validation error for _SampleResult\n  Invalid JSON: EOF while parsing an object at line 1 column 18 [type=json_invalid, input_value='{\"value\": \"broken\"', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/json_invalid"
+}

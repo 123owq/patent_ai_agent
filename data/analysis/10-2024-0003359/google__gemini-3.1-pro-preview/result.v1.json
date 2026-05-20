@@ -1,0 +1,613 @@
+{
+  "analysis_id": "20260519-225128-10-2024-0003359",
+  "application_number": "10-2024-0003359",
+  "llm_model": "google/gemini-3.1-pro-preview",
+  "created_at": "2026-05-19T22:51:28.398774",
+  "version": 1,
+  "source_files": {},
+  "errors": [],
+  "office_action": {
+    "application_number": "10-2024-0003359",
+    "rejection_reasons": [
+      {
+        "article": "특허법 제29조제2항",
+        "rejection_type": "진보성",
+        "target_claim_numbers": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "cited_art_ids": [
+          "1",
+          "2"
+        ],
+        "examiner_reasoning": "[제1항] 상기 비교 결과, 청구항 1 발명은 EPC메모리부가 96bit 이상으로 이루어지며, 타이어 ID를 기록하고 읽도록 마련되되, 상품 시리얼 넘버 파트를 분할하여 저장하도록 마련된 복수의 메모리를 갖는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 것(구성 4)을 포함하나, 인용발명 1에는 명시적으로 개시되어 있지 않다는 점에서 차이를 발견할 수 있습니다. 그러나, Guideline for unique identification of tires에 관한 발명이 기재된 인용발명 2에는 SGTN(Serialized Global Trade Item Number)이 96 bit로 구성되고, Tire ID를 위한 GTIN 및 Serial Number를 포함하는 기술이 이미 개시(pp. 8, 13 참조)되어 있으므로, 상기 차이는 통상의 기술자가 인용발명 1, 2의 결합으로부터 충분히 예상할 수 있는 것입니다.\n[제2항] 청구항 2 발명의 추가적인 기술적 특징은 인용발명 2에 개시된 SGTIN-96이 14 bit의 헤더, 필터 값, 파티션을 가지는 것(pp. 10, table 3 참조)과 실질적으로 동일합니다.\n[제3항] 청구항 3 발명의 추가적인 기술적 특징은 인용발명 2에 개시된 Company prefix가 20-40 bit로 구성되는 것(pp. 13-14, table 4 참조)과 실질적으로 동일합니다.\n[제4항] 청구항 4 발명의 추가적인 기술적 특징은 인용발명 2에 개시된 Item reference number가 4-24bit로 구성되는 것(pp. 13-14, table 4 참조)으로부터 통상의 기술자가 충분히 예상할 수 있는 것입니다.\n[제5항] 청구항 5 발명의 추가적인 기술적 특징은 인용발명 2에 개시된 Company Prefix와 Item reference number의 bit 수의 합이 44인 것(pp.13-14, table 4 참조)과 실질적으로 동일합니다.\n[제6항] 청구항 6 발명의 추가적인 기술적 특징은 인용발명 2에 개시된 38-bit 의 serial number를 포함하는 것(pp. 11 참조)과 실질적으로 동일합니다."
+      }
+    ],
+    "rejected_claim_numbers": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "cited_arts": [
+      {
+        "cited_art_id": "1",
+        "document_number": "일본 공개특허공보 특개2006-281928호"
+      },
+      {
+        "cited_art_id": "2",
+        "document_number": "RAIN Alliance. Guideline for Unique Identification of Tires."
+      }
+    ],
+    "examiner_chart": [
+      {
+        "comparison_id": null,
+        "claim_number": 1,
+        "element_label": "구성 1",
+        "our_claim_text": "타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어에 있어서",
+        "prior_art_text": "타이어가 이력 정보가 기록된 RFID 태그(21)가 장착되는 타이어",
+        "prior_art_id": "1",
+        "prior_art_location": null,
+        "examiner_match": "유사",
+        "note": null
+      },
+      {
+        "comparison_id": null,
+        "claim_number": 1,
+        "element_label": "구성 2",
+        "our_claim_text": "타이어는 전자장치를 갖도록 마련되며",
+        "prior_art_text": "타이어에 장착되는 RFID(21)",
+        "prior_art_id": "1",
+        "prior_art_location": null,
+        "examiner_match": "유사",
+        "note": null
+      },
+      {
+        "comparison_id": null,
+        "claim_number": 1,
+        "element_label": "구성 3",
+        "our_claim_text": "전자장치는, 회로가 형성되는 기판부; 기판에 마련되는 안테나부; 및 기판에 마련되는 EPC메모리부를 포함하며",
+        "prior_art_text": "RFID 태그(21)는 메모리및 메모리아크세스를 포함하는 RFID용 IC(211) 와 안테나 코일(212)을 포함함",
+        "prior_art_id": "1",
+        "prior_art_location": null,
+        "examiner_match": "유사",
+        "note": null
+      },
+      {
+        "comparison_id": null,
+        "claim_number": 1,
+        "element_label": "구성 4",
+        "our_claim_text": "EPC메모리부는 96bit 이상으로 이루어지며, 타이어 ID를 기록하고 읽도록 마련되되, 상품 시리얼 넘버 파트를 분할하여 저장하도록 마련된 복수의 메모리를 갖는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한",
+        "prior_art_text": "RFID(21)이 장착되는 타이어의 이력 정보를 포함하는 RIFID IC(211)내의 메모리",
+        "prior_art_id": "1",
+        "prior_art_location": null,
+        "examiner_match": "차이",
+        "note": null
+      },
+      {
+        "comparison_id": null,
+        "claim_number": 1,
+        "element_label": "구성 5",
+        "our_claim_text": "타이어",
+        "prior_art_text": "타이어",
+        "prior_art_id": "1",
+        "prior_art_location": null,
+        "examiner_match": "유사",
+        "note": null
+      }
+    ]
+  },
+  "claim_parse": {
+    "application_number": "10-2024-0003359",
+    "total_claims": 10,
+    "independent_claims": [
+      1
+    ],
+    "dependent_claims": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "claims": [
+      {
+        "claim_number": 1,
+        "claim_type": "독립항",
+        "depends_on": [],
+        "preamble": "타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어에 있어서,",
+        "original_text": "타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어에 있어서, 상기 타이어는 전자장치를 갖도록 마련되며, 상기 전자장치는, 회로가 형성되는 기판부; 상기 기판에 마련되는 안테나부; 및 상기 기판에 마련되는 EPC메모리부를 포함하며, 상기 EPC메모리부는 96bit 이상으로 이루어지며, 타이어 ID를 기록하고 읽도록 마련되되, 상품 시리얼 넘버 파트를 분할하여 저장하도록 마련된 복수의 메모리를 갖는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+        "elements": [
+          {
+            "element_id": "1-A",
+            "element_order": 1,
+            "text": "상기 타이어는 전자장치를 갖도록 마련되며,",
+            "label": "전자장치 구비"
+          },
+          {
+            "element_id": "1-B",
+            "element_order": 2,
+            "text": "상기 전자장치는, 회로가 형성되는 기판부;",
+            "label": "기판부"
+          },
+          {
+            "element_id": "1-C",
+            "element_order": 3,
+            "text": "상기 기판에 마련되는 안테나부; 및",
+            "label": "안테나부"
+          },
+          {
+            "element_id": "1-D",
+            "element_order": 4,
+            "text": "상기 기판에 마련되는 EPC메모리부를 포함하며,",
+            "label": "EPC메모리부"
+          },
+          {
+            "element_id": "1-E",
+            "element_order": 5,
+            "text": "상기 EPC메모리부는 96bit 이상으로 이루어지며, 타이어 ID를 기록하고 읽도록 마련되되, 상품 시리얼 넘버 파트를 분할하여 저장하도록 마련된 복수의 메모리를 갖는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+            "label": "EPC메모리부 특징"
+          }
+        ]
+      },
+      {
+        "claim_number": 2,
+        "claim_type": "종속항",
+        "depends_on": [
+          1
+        ],
+        "preamble": "제 1 항에 있어서,",
+        "original_text": "제 1 항에 있어서, 상기 EPC메모리부는, 14bit로 분할 형성되어, 헤더, 필터 값, 파티션으로 구성된 제1 메모리를 갖는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+        "elements": [
+          {
+            "element_id": "2-A",
+            "element_order": 1,
+            "text": "상기 EPC메모리부는, 14bit로 분할 형성되어, 헤더, 필터 값, 파티션으로 구성된 제1 메모리를 갖는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+            "label": "제1 메모리"
+          }
+        ]
+      },
+      {
+        "claim_number": 3,
+        "claim_type": "종속항",
+        "depends_on": [
+          2
+        ],
+        "preamble": "제 2 항에 있어서,",
+        "original_text": "제 2 항에 있어서, 상기 EPC메모리부는, 20 내지 40bit로 분할 형성되어, Company prefix를 저장하도록 마련된 제2 메모리를 갖는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+        "elements": [
+          {
+            "element_id": "3-A",
+            "element_order": 1,
+            "text": "상기 EPC메모리부는, 20 내지 40bit로 분할 형성되어, Company prefix를 저장하도록 마련된 제2 메모리를 갖는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+            "label": "제2 메모리"
+          }
+        ]
+      },
+      {
+        "claim_number": 4,
+        "claim_type": "종속항",
+        "depends_on": [
+          3
+        ],
+        "preamble": "제 3 항에 있어서,",
+        "original_text": "제 3 항에 있어서, 상기 EPC메모리부는, 4 내지 20bit로 분할 형성되어, 1~7 자리로 상품정보가 표시되도록 마련된 제3 메모리를 갖는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+        "elements": [
+          {
+            "element_id": "4-A",
+            "element_order": 1,
+            "text": "상기 EPC메모리부는, 4 내지 20bit로 분할 형성되어, 1~7 자리로 상품정보가 표시되도록 마련된 제3 메모리를 갖는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+            "label": "제3 메모리"
+          }
+        ]
+      },
+      {
+        "claim_number": 5,
+        "claim_type": "종속항",
+        "depends_on": [
+          4
+        ],
+        "preamble": "제 4 항에 있어서,",
+        "original_text": "제 4 항에 있어서, 상기 제2 메모리와 상기 제3 메모리의 총 bit는 44bit가 되도록 마련된 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+        "elements": [
+          {
+            "element_id": "5-A",
+            "element_order": 1,
+            "text": "상기 제2 메모리와 상기 제3 메모리의 총 bit는 44bit가 되도록 마련된 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+            "label": "메모리 총 bit"
+          }
+        ]
+      },
+      {
+        "claim_number": 6,
+        "claim_type": "종속항",
+        "depends_on": [
+          1
+        ],
+        "preamble": "제 1 항에 있어서,",
+        "original_text": "제 1 항에 있어서, 상기 EPC메모리부는, 38bit로 분할 형성되어, 시리얼 넘버가 표시되도록 마련된 제4 메모리를 갖는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+        "elements": [
+          {
+            "element_id": "6-A",
+            "element_order": 1,
+            "text": "상기 EPC메모리부는, 38bit로 분할 형성되어, 시리얼 넘버가 표시되도록 마련된 제4 메모리를 갖는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+            "label": "제4 메모리"
+          }
+        ]
+      },
+      {
+        "claim_number": 7,
+        "claim_type": "종속항",
+        "depends_on": [
+          6
+        ],
+        "preamble": "제 6 항에 있어서,",
+        "original_text": "제 6 항에 있어서, 상기 제4 메모리는, Company prefix와 상품정보의 메모리 사이즈를 구별하고, 흡음재타이어의 유무를 더 표시하도록 마련된 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+        "elements": [
+          {
+            "element_id": "7-A",
+            "element_order": 1,
+            "text": "상기 제4 메모리는, Company prefix와 상품정보의 메모리 사이즈를 구별하고, 흡음재타이어의 유무를 더 표시하도록 마련된 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+            "label": "제4 메모리 특징"
+          }
+        ]
+      },
+      {
+        "claim_number": 8,
+        "claim_type": "종속항",
+        "depends_on": [
+          7
+        ],
+        "preamble": "제 7 항에 있어서,",
+        "original_text": "제 7 항에 있어서, 상기 제4 메모리는, 3bit로 구성되며, 상품정보의 자리수를 2진수로 표시하도록 마련된 제4-1 메모리; 1bit로 구성되며, 2진수로 흡음재의 부착 여부를 표시하도록 마련된 제4-2 메모리; 및 34bit로 구성되며, 시리얼번호를 2진수로 표시하도록 마련된 제4-3 메모리를 포함하는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+        "elements": [
+          {
+            "element_id": "8-A",
+            "element_order": 1,
+            "text": "상기 제4 메모리는, 3bit로 구성되며, 상품정보의 자리수를 2진수로 표시하도록 마련된 제4-1 메모리;",
+            "label": "제4-1 메모리"
+          },
+          {
+            "element_id": "8-B",
+            "element_order": 2,
+            "text": "1bit로 구성되며, 2진수로 흡음재의 부착 여부를 표시하도록 마련된 제4-2 메모리; 및",
+            "label": "제4-2 메모리"
+          },
+          {
+            "element_id": "8-C",
+            "element_order": 3,
+            "text": "34bit로 구성되며, 시리얼번호를 2진수로 표시하도록 마련된 제4-3 메모리를 포함하는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+            "label": "제4-3 메모리"
+          }
+        ]
+      },
+      {
+        "claim_number": 9,
+        "claim_type": "종속항",
+        "depends_on": [
+          8
+        ],
+        "preamble": "제 8 항에 있어서,",
+        "original_text": "제 8 항에 있어서, 상기 제4 메모리는, 2진수로 표시된 상기 상품정보의 자리수, 상기 흡음재의 부착 여부, 상기 시리얼번호를 좌측부터 우측 방향으로 순서대로 배열하여 표시하도록 마련된 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+        "elements": [
+          {
+            "element_id": "9-A",
+            "element_order": 1,
+            "text": "상기 제4 메모리는, 2진수로 표시된 상기 상품정보의 자리수, 상기 흡음재의 부착 여부, 상기 시리얼번호를 좌측부터 우측 방향으로 순서대로 배열하여 표시하도록 마련된 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+            "label": "제4 메모리 배열"
+          }
+        ]
+      },
+      {
+        "claim_number": 10,
+        "claim_type": "종속항",
+        "depends_on": [
+          9
+        ],
+        "preamble": "제 9 항에 있어서,",
+        "original_text": "제 9 항에 있어서, 상기 제4 메모리에 저장된 2진수 데이터를 10진수 데이터로 읽어올 때, 먼저, 좌측부터 순서대로 3bit를 이용하여 제3 메모리의 상기 상품정보의 자리수를 확정하고, 제1 메모리의 14bit를 제외한 잔여 bit를 제2 메모리, 제3 메모리 및 상기 제4 메모리로 분할하여 10진수 또는 10진수와 문자의 결합 형태로 복원하여 표시하도록 마련된 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+        "elements": [
+          {
+            "element_id": "10-A",
+            "element_order": 1,
+            "text": "상기 제4 메모리에 저장된 2진수 데이터를 10진수 데이터로 읽어올 때, 먼저, 좌측부터 순서대로 3bit를 이용하여 제3 메모리의 상기 상품정보의 자리수를 확정하고, 제1 메모리의 14bit를 제외한 잔여 bit를 제2 메모리, 제3 메모리 및 상기 제4 메모리로 분할하여 10진수 또는 10진수와 문자의 결합 형태로 복원하여 표시하도록 마련된 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+            "label": "데이터 복원 표시"
+          }
+        ]
+      }
+    ]
+  },
+  "spec_mapping": {
+    "mappings": [
+      {
+        "element_id": "1-A",
+        "paragraph_ids": [
+          "0017",
+          "0041"
+        ],
+        "rationale": "명세서 단락 0017과 0041에서 타이어가 전자장치를 갖도록 마련된다는 점을 명확히 기재하고 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "1-B",
+        "paragraph_ids": [
+          "0017",
+          "0061",
+          "0062"
+        ],
+        "rationale": "전자장치가 회로가 형성되는 기판부를 포함한다는 구성이 단락 0017, 0061, 0062에 구체적으로 설명되어 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "1-C",
+        "paragraph_ids": [
+          "0017",
+          "0064"
+        ],
+        "rationale": "기판에 마련되는 안테나부에 대한 설명이 단락 0017과 0064에 명시되어 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "1-D",
+        "paragraph_ids": [
+          "0017",
+          "0068"
+        ],
+        "rationale": "기판에 형성되는 EPC메모리부에 대한 구성이 단락 0017과 0068에 직접적으로 기재되어 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "1-E",
+        "paragraph_ids": [
+          "0017",
+          "0068",
+          "0070"
+        ],
+        "rationale": "EPC메모리부가 96bit 이상으로 이루어지며, 타이어 ID를 기록하고 상품 시리얼 넘버 파트를 분할 저장하는 복수의 메모리를 갖는다는 특징이 단락 0017, 0068, 0070에 상세히 설명되어 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "2-A",
+        "paragraph_ids": [
+          "0018",
+          "0071"
+        ],
+        "rationale": "EPC메모리부가 14bit로 분할되어 헤더, 필터 값, 파티션으로 구성된 제1 메모리를 갖는다는 내용이 단락 0018과 0071에 명확히 기재되어 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "3-A",
+        "paragraph_ids": [
+          "0019",
+          "0072"
+        ],
+        "rationale": "20 내지 40bit로 분할되어 Company prefix를 저장하는 제2 메모리에 대한 설명이 단락 0019와 0072에 나타나 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "4-A",
+        "paragraph_ids": [
+          "0020",
+          "0073"
+        ],
+        "rationale": "4 내지 20bit로 분할되어 1~7 자리의 상품정보를 표시하는 제3 메모리의 구성이 단락 0020과 0073에 명시되어 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "5-A",
+        "paragraph_ids": [
+          "0021",
+          "0074"
+        ],
+        "rationale": "제2 메모리와 제3 메모리의 총 bit가 44bit가 되도록 마련된다는 특징이 단락 0021과 0074에 기재되어 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "6-A",
+        "paragraph_ids": [
+          "0022",
+          "0075"
+        ],
+        "rationale": "38bit로 분할되어 시리얼 넘버가 표시되는 제4 메모리에 대한 설명이 단락 0022와 0075에 명확히 나타나 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "7-A",
+        "paragraph_ids": [
+          "0023",
+          "0076"
+        ],
+        "rationale": "제4 메모리가 Company prefix와 상품정보의 메모리 사이즈를 구별하고 흡음재타이어 유무를 표시한다는 특징이 단락 0023과 0076에 기재되어 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "8-A",
+        "paragraph_ids": [
+          "0024",
+          "0078"
+        ],
+        "rationale": "3bit로 구성되어 상품정보의 자리수를 2진수로 표시하는 제4-1 메모리에 대한 내용이 단락 0024와 0078에 명시되어 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "8-B",
+        "paragraph_ids": [
+          "0024",
+          "0079"
+        ],
+        "rationale": "1bit로 구성되어 흡음재 부착 여부를 2진수로 표시하는 제4-2 메모리의 구성이 단락 0024와 0079에 기재되어 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "8-C",
+        "paragraph_ids": [
+          "0024",
+          "0080"
+        ],
+        "rationale": "34bit로 구성되어 시리얼번호를 2진수로 표시하는 제4-3 메모리에 대한 설명이 단락 0024와 0080에 명확히 나타나 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "9-A",
+        "paragraph_ids": [
+          "0025",
+          "0089"
+        ],
+        "rationale": "제4 메모리가 상품정보 자리수, 흡음재 부착 여부, 시리얼번호를 좌측부터 우측으로 순서대로 배열하여 표시한다는 특징이 단락 0025와 0089에 기재되어 있습니다.",
+        "confidence": 1.0
+      },
+      {
+        "element_id": "10-A",
+        "paragraph_ids": [
+          "0026",
+          "0090"
+        ],
+        "rationale": "제4 메모리의 2진수 데이터를 10진수로 읽어올 때의 복원 및 표시 방법에 대한 구체적인 과정이 단락 0026과 0090에 상세히 설명되어 있습니다.",
+        "confidence": 1.0
+      }
+    ]
+  },
+  "claim_chart": {
+    "charts": [
+      {
+        "target_claim_number": 1,
+        "rows": [
+          {
+            "comparison_id": "C0001",
+            "element_id": "구성 1",
+            "element_text": "타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어에 있어서",
+            "prior_art_id": "인용발명1",
+            "prior_art_element": "타이어가 이력 정보가 기록된 RFID 태그(21)가 장착되는 타이어",
+            "prior_art_location": null,
+            "our_match": "동일",
+            "our_explanation": "(1) 본원의 '전자장치'와 선행문헌의 'RFID 태그'는 상하위 개념 관계에 있으며, 선행문헌이 하위개념인 RFID 태그를 개시하므로 본원의 구성을 실질적으로 개시합니다. (2) 수치한정은 없습니다. (3) 따라서 양 발명의 구성은 동일합니다.",
+            "examiner_match": "유사",
+            "examiner_explanation": "타이어가 이력 정보가 기록된 RFID 태그(21)가 장착되는 타이어",
+            "agreement": "불일치",
+            "disagreement_rationale": "선행문헌의 'RFID 태그'는 본원의 '전자장치'의 하위개념에 해당하여 본원 구성을 개시하는 것으로 보아야 하므로 '동일'로 판단함."
+          },
+          {
+            "comparison_id": "C0002",
+            "element_id": "구성 2",
+            "element_text": "타이어는 전자장치를 갖도록 마련되며",
+            "prior_art_id": "인용발명1",
+            "prior_art_element": "타이어에 장착되는 RFID(21)",
+            "prior_art_location": null,
+            "our_match": "동일",
+            "our_explanation": "(1) 본원의 '전자장치를 갖도록 마련된 타이어'와 선행문헌의 'RFID가 장착되는 타이어'를 비교할 때, RFID는 전자장치의 하위개념이므로 선행문헌이 본원 구성을 실질적으로 개시합니다. (2) 수치한정은 없습니다. (3) 따라서 양 발명의 구성은 동일합니다.",
+            "examiner_match": "유사",
+            "examiner_explanation": "타이어에 장착되는 RFID(21)",
+            "agreement": "불일치",
+            "disagreement_rationale": "선행문헌의 'RFID'는 본원의 '전자장치'의 하위개념이므로, 타이어에 전자장치를 갖는 구성이 실질적으로 개시된 것으로 보아 '동일'로 판단함."
+          },
+          {
+            "comparison_id": "C0003",
+            "element_id": "구성 3",
+            "element_text": "전자장치는, 회로가 형성되는 기판부; 기판에 마련되는 안테나부; 및 기판에 마련되는 EPC메모리부를 포함하며",
+            "prior_art_id": "인용발명1",
+            "prior_art_element": "RFID 태그(21)는 메모리및 메모리아크세스를 포함하는 RFID용 IC(211) 와 안테나 코일(212)을 포함함",
+            "prior_art_location": null,
+            "our_match": "유사",
+            "our_explanation": "(1) 본원의 '기판부, 안테나부, EPC메모리부'와 선행문헌의 'RFID용 IC(메모리 포함) 및 안테나 코일'은 대응됩니다. 선행문헌에 기판부와 EPC메모리라는 구체적인 명칭이 명시되어 있지는 않으나, RFID 태그의 통상적인 구성요소로서 기능과 목적이 동일한 균등물에 해당합니다. (2) 수치한정은 없습니다. (3) 따라서 통상의 기술자가 용이하게 도출할 수 있으므로 유사합니다.",
+            "examiner_match": "유사",
+            "examiner_explanation": "RFID 태그(21)는 메모리및 메모리아크세스를 포함하는 RFID용 IC(211) 와 안테나 코일(212)을 포함함",
+            "agreement": "일치",
+            "disagreement_rationale": null
+          },
+          {
+            "comparison_id": "C0004",
+            "element_id": "구성 4",
+            "element_text": "EPC메모리부는 96bit 이상으로 이루어지며, 타이어 ID를 기록하고 읽도록 마련되되, 상품 시리얼 넘버 파트를 분할하여 저장하도록 마련된 복수의 메모리를 갖는 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한",
+            "prior_art_id": "인용발명1",
+            "prior_art_element": "RFID(21)이 장착되는 타이어의 이력 정보를 포함하는 RIFID IC(211)내의 메모리",
+            "prior_art_location": null,
+            "our_match": "차이",
+            "our_explanation": "(1) 본원은 EPC메모리부가 타이어 ID를 기록/읽고 상품 시리얼 넘버 파트를 분할 저장하는 복수의 메모리를 갖는 구체적인 데이터 구조를 한정하고 있으나, 선행문헌은 타이어 이력 정보를 포함하는 메모리만을 개시할 뿐 이러한 분할 저장 구조를 개시하지 않습니다. (2) 본원의 '96bit 이상'이라는 수치한정도 선행문헌에 개시되어 있지 않습니다. (3) 따라서 양 발명의 구성은 본질적으로 차이가 있습니다.",
+            "examiner_match": "차이",
+            "examiner_explanation": "RFID(21)이 장착되는 타이어의 이력 정보를 포함하는 RIFID IC(211)내의 메모리",
+            "agreement": "일치",
+            "disagreement_rationale": null
+          },
+          {
+            "comparison_id": "C0005",
+            "element_id": "구성 5",
+            "element_text": "타이어",
+            "prior_art_id": "인용발명1",
+            "prior_art_element": "타이어",
+            "prior_art_location": null,
+            "our_match": "동일",
+            "our_explanation": "(1) 본원과 선행문헌 모두 대상 물품으로 '타이어'를 명시적으로 기재하고 있어 성분 및 구조가 일치합니다. (2) 수치한정은 없습니다. (3) 따라서 양 발명의 구성은 동일합니다.",
+            "examiner_match": "유사",
+            "examiner_explanation": "타이어",
+            "agreement": "불일치",
+            "disagreement_rationale": "양 발명 모두 '타이어'를 명시적으로 기재하고 있으므로 '동일'로 판단함."
+          }
+        ]
+      }
+    ]
+  },
+  "strategy": {
+    "offensive": {
+      "strategy_type": "공격",
+      "rationale": "심사관은 구성 4(EPC메모리부의 96bit 이상, 타이어 ID 기록, 상품 시리얼 넘버 파트 분할 저장 구조)가 인용발명 1과 차이가 있음을 인정하면서도, 인용발명 2(SGTN 관련 가이드라인)를 결합하여 진보성을 부정하고 있습니다. 그러나 인용발명 2의 단순한 식별 가이드라인이나 SGTN 개념만으로는 본원발명의 하드웨어적 특징인 '상품 시리얼 넘버 파트를 분할하여 저장하도록 마련된 복수의 메모리 구조'를 용이하게 도출할 수 없습니다. 인용발명 1과 2의 결합 동기 부족 및 본원 특유의 분할 저장 구조가 갖는 데이터 처리 효율성 등의 이질적 효과를 강조해야 합니다.",
+      "leveraged_differences": [
+        "구성 4"
+      ],
+      "proposed_action": "청구항 보정 없이 의견서를 제출하여, 인용발명 2에는 본원의 핵심인 '시리얼 넘버 파트의 분할 저장 및 복수 메모리 구조'가 구체적으로 개시되어 있지 않음을 지적하고, 이러한 구조적 차이로 인해 발생하는 데이터 리딩 속도 향상 및 메모리 관리 효율성 등의 특유한 효과를 근거로 진보성을 강력히 주장합니다."
+    },
+    "defensive": {
+      "strategy_type": "방어",
+      "rationale": "인용발명 2에 SGTN(Serialized Global Trade Item Number)과 같은 타이어 식별 가이드라인이 개시되어 있어, 심사관이 구성 4의 데이터 구조를 통상의 기술자가 용이하게 구현할 수 있다고 판단할 위험이 높습니다. 따라서 거절이유를 확실히 극복하기 위해서는 명세서에 기재된 더 구체적인 메모리 분할 방식이나 다른 구성요소와의 유기적 결합 관계를 청구항에 추가 한정하여 인용발명들과의 차별성을 명확히 해야 합니다.",
+      "leveraged_differences": [
+        "구성 3",
+        "구성 4"
+      ],
+      "proposed_action": "최초 명세서의 상세한 설명 및 도면을 근거로, EPC메모리부의 복수 메모리가 상품 시리얼 넘버 파트를 분할 저장할 때의 구체적인 데이터 할당 방식(예: 특정 비트 구간의 분할 기준)이나, 구성 3의 기판부 및 안테나부와 연동하여 분할된 데이터를 읽고 쓰는 구체적인 제어 메커니즘을 청구항 1에 추가 한정하는 보정서를 제출합니다."
+    }
+  },
+  "amendment": {
+    "offensive_draft": {
+      "strategy_type": "공격",
+      "amended_claims": [
+        {
+          "claim_number": 1,
+          "original_text": "청구항 1 원문 참조",
+          "amended_text": null,
+          "diff_summary": "원문 유지 - 의견서로 진보성 주장",
+          "spec_basis": []
+        }
+      ],
+      "overall_explanation": "인용발명 1과 2의 결합으로는 본원발명의 핵심인 상품 시리얼 넘버 파트를 분할하여 저장하도록 마련된 복수의 메모리 구조를 도출할 수 없음을 의견서를 통해 강력히 주장합니다. 인용발명 2는 단순한 식별 가이드라인에 불과하여 하드웨어적 분할 저장 구조를 개시하지 않으며, 본원발명의 구조적 특징으로 인한 데이터 리딩 속도 향상 및 메모리 관리 효율성 등의 특유한 효과를 근거로 진보성을 주장하여 원안대로 권리범위를 확보하는 전략입니다."
+    },
+    "defensive_draft": {
+      "strategy_type": "방어",
+      "amended_claims": [
+        {
+          "claim_number": 1,
+          "original_text": "청구항 1 원문 참조",
+          "amended_text": "타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어에 있어서, 상기 타이어는 전자장치를 갖도록 마련되며, 상기 전자장치는, 회로가 형성되는 기판부; 상기 기판부에 마련되어 데이터의 단방향 또는 양방향 송수신을 수행하고 전원이 발생되도록 마련되는 안테나부; 및 상기 기판부에 마련되는 EPC메모리부를 포함하며, 상기 EPC메모리부는 96bit 이상으로 이루어지며, 타이어 ID를 기록하고 읽도록 마련되되, 상품 시리얼 넘버 파트를 분할하여 저장하도록 마련된 복수의 메모리를 갖고, 상기 복수의 메모리는 상품 시리얼 넘버 파트를 분할하여 흡음재의 유무를 기입할 수 있도록 마련되며, 상기 복수의 메모리 중 시리얼 넘버가 표시되는 메모리는 3bit로 구성되어 상품정보의 자리수를 2진수로 표시하는 제4-1 메모리, 1bit로 구성되어 2진수로 흡음재의 부착 여부를 표시하는 제4-2 메모리, 및 34bit로 구성되어 시리얼번호를 2진수로 표시하는 제4-3 메모리를 포함하여 좌측부터 우측 방향으로 순서대로 배열하여 표시하도록 마련된 것을 특징으로 하는 타이어의 관리를 위한 데이터 구조를 갖는 전자장치를 포함한 타이어.",
+          "diff_summary": "안테나부의 송수신 및 전원 발생 기능과, EPC메모리부의 복수 메모리가 상품 시리얼 넘버 파트를 분할하여 흡음재 유무 및 시리얼번호를 특정 비트(3bit, 1bit, 34bit)로 분할 저장하고 좌측부터 우측으로 배열하는 구체적인 데이터 할당 방식을 추가 한정함.",
+          "spec_basis": [
+            "0064",
+            "0070",
+            "0078",
+            "0079",
+            "0080",
+            "0089"
+          ]
+        }
+      ],
+      "overall_explanation": "인용발명 2의 SGTN 등 통상적인 타이어 식별 가이드라인과의 차별화를 위해, 명세서 단락 [0064], [0070], [0078]-[0080], [0089]에 근거하여 안테나부의 구체적 기능과 EPC메모리부의 시리얼 넘버 파트 분할 저장 방식(3bit 상품정보 자리수, 1bit 흡음재 부착 여부, 34bit 시리얼번호의 순차 배열)을 청구항 1에 추가 한정하였습니다. 이를 통해 데이터 구조의 구체적인 비트 할당 및 배열 메커니즘을 명확히 하여 진보성을 확보하는 방어적 보정을 수행하였습니다."
+    }
+  }
+}

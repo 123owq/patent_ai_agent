@@ -64,10 +64,13 @@ class SpecMappingResult(BaseModel):
 
 # ── Tool 4 보조 + 출력 ────────────────────────────────────────────────
 class ExaminerChartRow(BaseModel):
+    comparison_id: str | None = None
+    claim_number: int | None = None
     element_label: str
     our_claim_text: str
     prior_art_text: str
     prior_art_id: str
+    prior_art_location: str | None = None
     examiner_match: Literal["동일", "유사", "차이"]
     note: str | None = None
 
@@ -77,6 +80,7 @@ class ExaminerChart(BaseModel):
 
 
 class ClaimChartRow(BaseModel):
+    comparison_id: str | None = None
     element_id: str
     element_text: str
     prior_art_id: str

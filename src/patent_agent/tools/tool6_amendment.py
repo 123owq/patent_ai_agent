@@ -11,6 +11,20 @@ from patent_agent.models.output import (
 from patent_agent.core.prompts import render
 
 
+def _filter_spec_basis(result: AmendmentResult, allowed_paragraph_ids: set[str]) -> AmendmentResult:
+    if not allowed_paragraph_ids:
+        return result
+
+    for draft in (result.offensive_draft, result.defensive_draft):
+        for claim in draft.amended_claims:
+            claim.spec_basis = [
+                para_id
+                for para_id in claim.spec_basis
+                if para_id and para_id in allowed_paragraph_ids
+            ]
+    return result
+
+
 def generate_amendments(
     strategy: StrategyResult,
     claims: ClaimParseResult,
@@ -53,10 +67,11 @@ def generate_amendments(
         prompt_defensive, schema=AmendmentResult, temperature=0.0
     )
 
-    return AmendmentResult(
+    result = AmendmentResult(
         offensive_draft=offensive_result.offensive_draft,
         defensive_draft=defensive_result.defensive_draft,
     )
+    return _filter_spec_basis(result, set(all_spec_paragraphs))
 
 
 def validate_spec_basis(

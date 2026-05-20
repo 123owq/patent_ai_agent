@@ -4,6 +4,7 @@ uv run python scripts/run_pipeline.py 10-2014-0036561
 
 """
 import sys
+import os
 from dotenv import load_dotenv
 from patent_agent.llm import get_llm
 from patent_agent.core.pipeline import run_analysis
@@ -24,16 +25,18 @@ def main(application_number: str) -> None:
     print(f"[{application_number}] 모델: {llm_model}")
 
     from patent_agent.core.storage import load_analysis
-    try:
-        cached = load_analysis(application_number)
-        if cached.llm_model == llm_model:
-            print("이미 결과 있음. 종료.")
-            return
-        elif cached.llm_model == "":
-            print("모델이름 빈칸")
-            return
-    except FileNotFoundError:
-        pass
+    force_rerun = os.getenv("FORCE_RERUN", "").lower() in {"1", "true", "yes", "on"}
+    if not force_rerun:
+        try:
+            cached = load_analysis(application_number)
+            if cached.llm_model == llm_model:
+                print("이미 결과 있음. 종료.")
+                return
+            elif cached.llm_model == "":
+                print("모델이름 빈칸")
+                return
+        except FileNotFoundError:
+            pass
     
     print("분석 시작...")
     patent_raw = load_input_patent(application_number)

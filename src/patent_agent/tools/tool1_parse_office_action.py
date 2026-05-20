@@ -29,9 +29,11 @@ def extract_examiner_chart(oa_raw: OfficeActionRaw) -> ExaminerChart | None:
             if not isinstance(reason_val, dict):
                 continue
             claim_reasons = reason_val.get("청구항별거절이유", {})
-            for claim_val in claim_reasons.values():
+            for claim_key, claim_val in claim_reasons.items():
                 if not isinstance(claim_val, dict):
                     continue
+                claim_numbers = extract_claim_numbers(str(claim_key))
+                claim_number = claim_numbers[0] if claim_numbers else None
                 chart_rows = claim_val.get("진보성비교", {}).get("구성비교표", [])
                 for row in chart_rows:
                     match_raw = row.get("비고", "차이")
@@ -44,14 +46,20 @@ def extract_examiner_chart(oa_raw: OfficeActionRaw) -> ExaminerChart | None:
                     our_text = row.get("이출원제1항발명", "")
                     if isinstance(our_text, dict):
                         our_text = our_text.get("내용", str(our_text))
-                    prior_text = row.get("인용발명1", "")
+                    prior_art_id = next((k for k in row.keys() if str(k).startswith("인용발명")), "인용발명1")
+                    prior_text = row.get(prior_art_id, "")
+                    prior_art_location = None
                     if isinstance(prior_text, dict):
+                        prior_art_location = prior_text.get("출처")
                         prior_text = prior_text.get("내용", str(prior_text))
                     rows.append(ExaminerChartRow(
+                        comparison_id=f"C{len(rows) + 1:04d}",
+                        claim_number=claim_number,
                         element_label=row.get("구성", ""),
                         our_claim_text=str(our_text),
                         prior_art_text=str(prior_text),
-                        prior_art_id="인용발명1",
+                        prior_art_id=prior_art_id,
+                        prior_art_location=prior_art_location,
                         examiner_match=match,
                         note=None,
                     ))
