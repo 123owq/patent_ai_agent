@@ -142,3 +142,16 @@ class ToolError(BaseModel):
     error_type: Literal["llm_failure", "validation_error", "timeout"]
     message: str
     is_fatal: bool
+
+
+# ── Claim Conclusion (post-processing) ───────────────────────────────
+class ClaimConclusionItem(BaseModel):
+    claim_number: int
+    rejection_type: Literal["신규성", "진보성", "기재불비", "기타"]
+    merged_from: list[str] = []
+    our_verdict: Literal["동의", "부분동의", "반대"]
+    our_reasoning: str
+
+
+class ClaimConclusionResult(BaseModel):
+    items: list[ClaimConclusionItem]

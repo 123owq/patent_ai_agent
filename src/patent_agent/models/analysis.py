@@ -10,6 +10,7 @@ from patent_agent.models.output import (
     StrategyResult,
     AmendmentResult,
     ToolError,
+    ClaimConclusionResult,
 )
 
 
@@ -27,6 +28,7 @@ class AnalysisResult(BaseModel):
     claim_chart: ClaimChartResult
     strategy: StrategyResult
     amendment: AmendmentResult
+    claim_conclusion: ClaimConclusionResult | None = None
 
 
 class EditLogEntry(BaseModel):
