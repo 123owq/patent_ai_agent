@@ -150,6 +150,38 @@ def summarize(result_paths: list[str | Path] | None = None) -> None:
             row_counts = [counts[(examiner_label, llm_label)] for llm_label in LABELS]
             print(f"{examiner_label:12} | " + " | ".join(f"{n:>4}" for n in row_counts))
 
+    # claim_conclusion 통계
+    verdict_labels = ["동의", "부분동의", "반대"]
+    conclusion_by_model: dict[str, list[str]] = {}
+    for raw_path in paths:
+        path = Path(raw_path)
+        result = _load_result(path)
+        model = _model_label(result, path)
+        conclusion = result.get("claim_conclusion")
+        if not conclusion:
+            continue
+        verdicts = [
+            item["our_verdict"]
+            for item in conclusion.get("items", [])
+            if item.get("our_verdict")
+        ]
+        if verdicts:
+            conclusion_by_model.setdefault(model, []).extend(verdicts)
+
+    if conclusion_by_model:
+        print("\n=== Claim Conclusion (동의/부분동의/반대) ===")
+        for model, verdicts in sorted(conclusion_by_model.items()):
+            total = len(verdicts)
+            strict = verdicts.count("동의")
+            loose = strict + verdicts.count("부분동의")
+            dist = ", ".join(
+                f"{v}={verdicts.count(v)}" for v in verdict_labels
+            )
+            print(
+                f"{model}: strict={strict/total*100:.1f}% loose={loose/total*100:.1f}%"
+                f" ({dist}) total={total}"
+            )
+
 
 def main() -> None:
     summarize()

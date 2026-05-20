@@ -145,12 +145,18 @@ def enrich_one(result_path: Path, llm: LLMClient, force: bool) -> bool:
     if not items:
         return False
 
+    charts_by_claim = {
+        c["target_claim_number"]: c["rows"]
+        for c in result.get("claim_chart", {}).get("charts", [])
+    }
+
     items_with_text = [
         {
             **item,
             "claim_text": claims_by_number.get(item["claim_number"], {}).get(
                 "original_text", "(청구항 원문 없음)"
             ),
+            "prior_art_rows": charts_by_claim.get(item["claim_number"], []),
         }
         for item in items
     ]
@@ -161,6 +167,14 @@ def enrich_one(result_path: Path, llm: LLMClient, force: bool) -> bool:
         items=items_with_text,
     )
     conclusion = llm.generate(prompt, schema=ClaimConclusionResult, temperature=0.0)
+
+    # LLM이 merged_from을 임의로 채울 수 있으므로 원본 값으로 덮어씀
+    merged_from_map = {
+        (item["claim_number"], item["rejection_type"]): item["merged_from"]
+        for item in items
+    }
+    for ci in conclusion.items:
+        ci.merged_from = merged_from_map.get((ci.claim_number, ci.rejection_type), [])
 
     result["claim_conclusion"] = conclusion.model_dump()
     result_path.write_text(

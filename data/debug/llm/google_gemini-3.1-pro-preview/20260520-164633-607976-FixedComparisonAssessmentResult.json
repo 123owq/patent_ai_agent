@@ -1,0 +1,12 @@
+{
+  "model": "google/gemini-3.1-pro-preview",
+  "base_url": "https://openrouter.ai/api/v1",
+  "schema": "FixedComparisonAssessmentResult",
+  "finish_reason": null,
+  "had_tool_calls": false,
+  "tool_call_name": null,
+  "raw_content": null,
+  "raw_arguments": "",
+  "extracted_json": "",
+  "validation_error": "LLM returned empty content for structured generate()."
+}

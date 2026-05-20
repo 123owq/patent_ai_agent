@@ -16,6 +16,8 @@ from dotenv import load_dotenv
 
 from run_pipeline import main as run_pipeline
 from summarize_agreement import summarize
+from enrich_claim_conclusion import enrich_one
+from patent_agent.llm import get_llm
 
 #uv run python scripts/run_batch.py
 APPLICATION_NUMBERS: list[str] = [
@@ -57,6 +59,12 @@ def main() -> None:
             raise FileNotFoundError(f"Result not found after pipeline run: {result_path}")
 
         completed_result_paths.append(result_path)
+
+        try:
+            enrich_one(result_path, get_llm(), force=False)
+        except Exception as e:
+            print(f"[경고] claim_conclusion enrichment 실패: {e}")
+
         print(f"\n[batch {idx}/{total}] summary for {application_number}")
         summarize([result_path])
 
