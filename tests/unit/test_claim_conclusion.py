@@ -103,3 +103,91 @@ def test_build_items_uses_novelty_reasoning_when_merged():
         _reason("진보성", [1], reasoning="진보성 이유 원문"),
     ])
     assert items[0]["examiner_reasoning"] == "신규성 이유 원문"
+
+
+import json
+from pathlib import Path
+from unittest.mock import MagicMock
+from patent_agent.models.output import ClaimConclusionItem, ClaimConclusionResult
+from enrich_claim_conclusion import enrich_one
+
+
+def _write_result(path: Path, has_conclusion: bool = False) -> None:
+    data = {
+        "application_number": "10-test",
+        "llm_model": "anthropic/claude-sonnet-4.6",
+        "office_action": {
+            "rejection_reasons": [{
+                "rejection_type": "진보성",
+                "target_claim_numbers": [1],
+                "examiner_reasoning": "인용발명 1로부터 쉽게 발명 가능",
+                "cited_art_ids": ["인용발명1"],
+            }]
+        },
+        "claim_parse": {
+            "claims": [{"claim_number": 1, "original_text": "청구항 1 원문"}]
+        },
+    }
+    if has_conclusion:
+        data["claim_conclusion"] = {"items": []}
+    path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+
+
+def _mock_llm(verdict: str = "동의") -> MagicMock:
+    llm = MagicMock()
+    llm.generate.return_value = ClaimConclusionResult(items=[
+        ClaimConclusionItem(
+            claim_number=1, rejection_type="진보성",
+            our_verdict=verdict, our_reasoning="판단 근거",
+        )
+    ])
+    return llm
+
+
+def test_enrich_one_writes_conclusion(tmp_path):
+    result_path = tmp_path / "result.json"
+    _write_result(result_path)
+
+    changed = enrich_one(result_path, _mock_llm(), force=False)
+
+    assert changed is True
+    saved = json.loads(result_path.read_text(encoding="utf-8"))
+    assert "claim_conclusion" in saved
+    assert saved["claim_conclusion"]["items"][0]["our_verdict"] == "동의"
+
+
+def test_enrich_one_skips_existing(tmp_path):
+    result_path = tmp_path / "result.json"
+    _write_result(result_path, has_conclusion=True)
+    llm = _mock_llm()
+
+    changed = enrich_one(result_path, llm, force=False)
+
+    assert changed is False
+    llm.generate.assert_not_called()
+
+
+def test_enrich_one_force_overwrites(tmp_path):
+    result_path = tmp_path / "result.json"
+    _write_result(result_path, has_conclusion=True)
+
+    changed = enrich_one(result_path, _mock_llm(), force=True)
+
+    assert changed is True
+
+
+def test_enrich_one_returns_false_when_no_items(tmp_path):
+    result_path = tmp_path / "result.json"
+    data = {
+        "application_number": "10-test",
+        "llm_model": "anthropic/claude-sonnet-4.6",
+        "office_action": {"rejection_reasons": []},
+        "claim_parse": {"claims": []},
+    }
+    result_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    llm = _mock_llm()
+
+    changed = enrich_one(result_path, llm, force=False)
+
+    assert changed is False
+    llm.generate.assert_not_called()
