@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from patent_agent.api.deps import get_llm_dep
 from patent_agent.api.routers.analysis import _adapt_patent, _adapt_prior_art
@@ -10,6 +10,8 @@ from patent_agent.core.storage import (
     load_input_office_action,
     load_input_prior_arts,
     save_analysis,
+    model_name_to_id,
+    normalize_model_id,
 )
 from patent_agent.models.analysis import AnalysisResult
 from patent_agent.models.input import OfficeActionRaw
@@ -42,10 +44,24 @@ def _load_inputs(application_number: str):
 def rerun_strategy(
     application_number: str,
     req: RerunRequest,
+    model_id: str | None = Query(default=None),
     llm: LLMClient = Depends(get_llm_dep),
 ):
     try:
-        existing = load_analysis(application_number)
+        requested_model_id = normalize_model_id(model_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    current_model_id = model_name_to_id(getattr(llm, "model", ""))
+    if requested_model_id and requested_model_id != current_model_id:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"Requested model_id '{requested_model_id}' cannot be rerun while "
+                f"this server is configured for '{current_model_id}'."
+            ),
+        )
+    try:
+        existing = load_analysis(application_number, model_id=model_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="분석 결과 없음")
 
@@ -82,7 +98,7 @@ def rerun_strategy(
         strategy=new_strategy,
         amendment=new_amendment,
     )
-    save_analysis(updated)
+    save_analysis(updated, model_id=model_id)
     return updated
 
 
@@ -90,10 +106,24 @@ def rerun_strategy(
 def rerun_amendment(
     application_number: str,
     req: RerunRequest,
+    model_id: str | None = Query(default=None),
     llm: LLMClient = Depends(get_llm_dep),
 ):
     try:
-        existing = load_analysis(application_number)
+        requested_model_id = normalize_model_id(model_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    current_model_id = model_name_to_id(getattr(llm, "model", ""))
+    if requested_model_id and requested_model_id != current_model_id:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"Requested model_id '{requested_model_id}' cannot be rerun while "
+                f"this server is configured for '{current_model_id}'."
+            ),
+        )
+    try:
+        existing = load_analysis(application_number, model_id=model_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="분석 결과 없음")
 
@@ -123,5 +153,5 @@ def rerun_amendment(
         strategy=existing.strategy,
         amendment=new_amendment,
     )
-    save_analysis(updated)
+    save_analysis(updated, model_id=model_id)
     return updated

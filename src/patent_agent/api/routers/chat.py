@@ -1,5 +1,5 @@
 import json
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sse_starlette.sse import EventSourceResponse
 from patent_agent.api.deps import get_llm_dep
 from patent_agent.core.chatbot import ChatRequest, ChatResponse, run_chatbot, stream_chatbot
@@ -13,11 +13,14 @@ router = APIRouter(prefix="/api/v1/analysis", tags=["chat"])
 def chat(
     application_number: str,
     req: ChatRequest,
+    model_id: str | None = Query(default=None),
     llm: LLMClient = Depends(get_llm_dep),
 ):
     """비스트리밍 챗봇 (하위 호환)"""
     try:
-        analysis = load_analysis(application_number)
+        analysis = load_analysis(application_number, model_id=model_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="분석 결과 없음")
     return run_chatbot(req, analysis, llm)
@@ -27,6 +30,7 @@ def chat(
 async def chat_stream(
     application_number: str,
     req: ChatRequest,
+    model_id: str | None = Query(default=None),
     llm: LLMClient = Depends(get_llm_dep),
 ):
     """스트리밍 챗봇 — SSE로 토큰 실시간 전송
@@ -37,7 +41,9 @@ async def chat_stream(
       data: {"type": "done"}                       ← 종료
     """
     try:
-        analysis = load_analysis(application_number)
+        analysis = load_analysis(application_number, model_id=model_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="분석 결과 없음")
 

@@ -3,7 +3,7 @@ import json
 import os
 import time
 from pathlib import Path
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel
 from patent_agent.api.deps import get_llm_dep
 from patent_agent.llm.base import LLMClient
@@ -13,6 +13,8 @@ from patent_agent.core.storage import (
     load_input_office_action,
     load_input_patent,
     load_input_prior_arts,
+    model_name_to_id,
+    normalize_model_id,
 )
 from patent_agent.models.analysis import AnalysisResult
 from patent_agent.models.input import OfficeActionRaw, PatentDoc, PriorArtDoc
@@ -25,11 +27,13 @@ _progress_store: dict[str, list[dict]] = {}
 
 class StartAnalysisRequest(BaseModel):
     application_number: str
+    model_id: str | None = None
 
 
 class StartAnalysisResponse(BaseModel):
     analysis_id: str
     application_number: str
+    model_id: str | None = None
     status: str = "started"
 
 
@@ -41,22 +45,37 @@ async def start_analysis(
 ):
     application_number = req.application_number
     llm_model: str = getattr(llm, "model", "")
+    current_model_id = model_name_to_id(llm_model)
+    try:
+        requested_model_id = normalize_model_id(req.model_id) or current_model_id
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     analysis_id = f"{int(time.time())}-{application_number}"
     _progress_store[analysis_id] = []
 
     # 동일 출원번호 + 동일 모델 결과가 이미 있으면 파이프라인 스킵
     try:
-        cached = load_analysis(application_number)
-        if cached.llm_model == llm_model:
+        cached = load_analysis(application_number, model_id=requested_model_id)
+        if cached:
             _progress_store[analysis_id].append(
                 {"step": "완료 (캐시)", "ratio": 1.0, "done": True}
             )
             return StartAnalysisResponse(
                 analysis_id=analysis_id,
                 application_number=application_number,
+                model_id=requested_model_id,
             )
     except FileNotFoundError:
         pass
+
+    if requested_model_id and requested_model_id != current_model_id:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"Requested model_id '{requested_model_id}' has no cached result, "
+                f"and this server is configured for '{current_model_id}'."
+            ),
+        )
 
     def _run():
         try:
@@ -83,13 +102,16 @@ async def start_analysis(
     return StartAnalysisResponse(
         analysis_id=analysis_id,
         application_number=application_number,
+        model_id=requested_model_id,
     )
 
 
 @router.get("/{application_number}", response_model=AnalysisResult)
-def get_analysis(application_number: str):
+def get_analysis(application_number: str, model_id: str | None = Query(default=None)):
     try:
-        return load_analysis(application_number)
+        return load_analysis(application_number, model_id=model_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="분석 결과 없음")
 

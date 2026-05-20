@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json
 import time
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from sse_starlette.sse import EventSourceResponse
 from pydantic import BaseModel
@@ -19,6 +19,8 @@ from patent_agent.core.storage import (
     load_input_patent,
     load_input_office_action,
     load_input_prior_arts,
+    model_name_to_id,
+    normalize_model_id,
 )
 from patent_agent.models.input import OfficeActionRaw
 from patent_agent.llm.base import LLMClient
@@ -51,10 +53,16 @@ class RegenResponse(BaseModel):
 
 
 @router.get("/{application_number}/steps/{step_name}")
-def get_step_result(application_number: str, step_name: str):
+def get_step_result(
+    application_number: str,
+    step_name: str,
+    model_id: str | None = Query(default=None),
+):
     _validate_step(step_name)
     try:
-        result = load_analysis(application_number)
+        result = load_analysis(application_number, model_id=model_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="분석 결과 없음")
 
@@ -68,11 +76,27 @@ async def regenerate_from_step(
     application_number: str,
     step_name: str,
     background_tasks: BackgroundTasks,
+    model_id: str | None = Query(default=None),
     llm: LLMClient = Depends(get_llm_dep),
 ):
     _validate_step(step_name)
     try:
-        existing = load_analysis(application_number)
+        requested_model_id = normalize_model_id(model_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    current_model_id = model_name_to_id(getattr(llm, "model", ""))
+    if requested_model_id and requested_model_id != current_model_id:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"Requested model_id '{requested_model_id}' cannot be regenerated while "
+                f"this server is configured for '{current_model_id}'."
+            ),
+        )
+    try:
+        existing = load_analysis(application_number, model_id=model_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="분석 결과 없음")
 
@@ -115,11 +139,14 @@ def step_chat(
     application_number: str,
     step_name: str,
     req: ChatRequest,
+    model_id: str | None = Query(default=None),
     llm: LLMClient = Depends(get_llm_dep),
 ):
     _validate_step(step_name)
     try:
-        result = load_analysis(application_number)
+        result = load_analysis(application_number, model_id=model_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="분석 결과 없음")
 
@@ -131,11 +158,14 @@ async def step_chat_stream(
     application_number: str,
     step_name: str,
     req: ChatRequest,
+    model_id: str | None = Query(default=None),
     llm: LLMClient = Depends(get_llm_dep),
 ):
     _validate_step(step_name)
     try:
-        result = load_analysis(application_number)
+        result = load_analysis(application_number, model_id=model_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="분석 결과 없음")
 
