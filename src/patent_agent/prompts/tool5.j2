@@ -19,7 +19,7 @@
 
 ## 거절이유 요약
 {% for reason in rejection_reasons %}
-- {{ reason.rejection_type }} ({{ reason.article }}): {{ reason.examiner_reasoning[:300] }}
+- {{ reason.rejection_type }} ({{ reason.article }}): {{ reason.examiner_reasoning[:1000] }}
 {% endfor %}
 
 {% if user_instruction %}
