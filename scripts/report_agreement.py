@@ -49,6 +49,18 @@ class RowRecord:
     our_match: str | None
 
 
+VERDICT_LABELS = ["동의", "부분동의", "반대"]
+
+
+@dataclass
+class ConclusionRecord:
+    application_number: str
+    model: str
+    claim_number: int
+    rejection_type: str
+    our_verdict: str
+
+
 def _model_dir(model: str) -> str:
     return model.replace("/", "__")
 
@@ -95,6 +107,132 @@ def _collect_records() -> tuple[list[RowRecord], list[tuple[str, str, Path]]]:
             records.extend(_iter_records(path, application_number, model))
 
     return records, missing
+
+
+def _collect_conclusion_records(
+    path: Path,
+    expected_application_number: str,
+    expected_model: str,
+):
+    result = _load_json(path)
+    application_number = result.get("application_number", expected_application_number)
+    model = result.get("llm_model") or expected_model
+    conclusion = result.get("claim_conclusion")
+    if not conclusion:
+        return
+    for item in conclusion.get("items", []):
+        verdict = item.get("our_verdict")
+        if not verdict:
+            continue
+        yield ConclusionRecord(
+            application_number=application_number,
+            model=model,
+            claim_number=item["claim_number"],
+            rejection_type=item["rejection_type"],
+            our_verdict=verdict,
+        )
+
+
+def _collect_all_conclusion_records() -> list[ConclusionRecord]:
+    records: list[ConclusionRecord] = []
+    for application_number in APPLICATION_NUMBERS:
+        for model in MODELS:
+            path = _result_path(application_number, model)
+            if not path.exists():
+                continue
+            records.extend(
+                _collect_conclusion_records(path, application_number, model)
+            )
+    return records
+
+
+def _build_conclusion_section(records: list[ConclusionRecord]) -> str:
+    if not records:
+        return (
+            "데이터 없음 — `uv run python scripts/enrich_claim_conclusion.py` 를 먼저 실행하세요.\n"
+        )
+
+    lines: list[str] = []
+
+    # 모델별 strict / loose
+    by_model: dict[str, list[ConclusionRecord]] = defaultdict(list)
+    for r in records:
+        by_model[r.model].append(r)
+
+    model_rows = []
+    for model in MODELS:
+        recs = by_model[model]
+        if not recs:
+            model_rows.append([model, "—", "—", "0"])
+            continue
+        total = len(recs)
+        strict = sum(1 for r in recs if r.our_verdict == "동의")
+        loose = sum(1 for r in recs if r.our_verdict in ("동의", "부분동의"))
+        model_rows.append([
+            model,
+            f"{strict / total * 100:.1f}% ({strict}/{total})",
+            f"{loose / total * 100:.1f}% ({loose}/{total})",
+            str(total),
+        ])
+
+    lines += [
+        "### 모델별 Strict / Loose Agreement",
+        "",
+        "> Strict = 동의만 / Loose = 동의 + 부분동의",
+        "",
+        _markdown_table(
+            ["Model", "Strict Agreement", "Loose Agreement", "Total"],
+            model_rows,
+        ),
+        "",
+    ]
+
+    # 거절유형별 strict / loose
+    by_type: dict[str, list[ConclusionRecord]] = defaultdict(list)
+    for r in records:
+        by_type[r.rejection_type].append(r)
+
+    type_rows = []
+    for rtype in sorted(by_type.keys()):
+        recs = by_type[rtype]
+        total = len(recs)
+        strict = sum(1 for r in recs if r.our_verdict == "동의")
+        loose = sum(1 for r in recs if r.our_verdict in ("동의", "부분동의"))
+        type_rows.append([rtype, f"{strict / total * 100:.1f}%", f"{loose / total * 100:.1f}%", str(total)])
+
+    lines += [
+        "### 거절유형별 Strict / Loose Agreement",
+        "",
+        _markdown_table(["거절유형", "Strict", "Loose", "Total"], type_rows),
+        "",
+    ]
+
+    # 문서×모델별 loose agreement
+    by_doc_model: dict[tuple[str, str], list[ConclusionRecord]] = defaultdict(list)
+    for r in records:
+        by_doc_model[(r.application_number, r.model)].append(r)
+
+    doc_rows = []
+    for app in APPLICATION_NUMBERS:
+        row = [app]
+        for model in MODELS:
+            recs = by_doc_model[(app, model)]
+            if not recs:
+                row.append("—")
+            else:
+                total = len(recs)
+                loose = sum(1 for r in recs if r.our_verdict in ("동의", "부분동의"))
+                row.append(f"{loose / total * 100:.1f}% ({loose}/{total})")
+        doc_rows.append(row)
+
+    lines += [
+        "### 문서별 Loose Agreement",
+        "",
+        _markdown_table(["Application", *MODELS], doc_rows),
+        "",
+    ]
+
+    return "\n".join(lines)
 
 
 def _empty_bucket() -> dict[str, int]:
@@ -243,6 +381,20 @@ def _build_report(records: list[RowRecord], missing: list[tuple[str, str, Path]]
             ])
         lines.append(_markdown_table(["Examiner \\ LLM", *LABELS], matrix_rows))
         lines.append("")
+
+    conclusion_records = _collect_all_conclusion_records()
+    lines += [
+        "",
+        "---",
+        "",
+        "# 청구항 거절 결론 통계",
+        "",
+        "> **비교 단위:** 거절된 개별 청구항 (신규성+진보성 동시 거절은 신규성 1건으로 집계)",
+        "> **라벨:** 동의 / 부분동의 / 반대",
+        "> **주의:** 위 구성요소 대비 통계(분모=row 수)와 이 섹션(분모=청구항 수)은 단위가 다르므로 수치를 합산하지 마십시오.",
+        "",
+        _build_conclusion_section(conclusion_records),
+    ]
 
     lines.extend([
         "## 5. 해석 메모",

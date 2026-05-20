@@ -191,3 +191,72 @@ def test_enrich_one_returns_false_when_no_items(tmp_path):
 
     assert changed is False
     llm.generate.assert_not_called()
+
+
+from report_agreement import (
+    ConclusionRecord,
+    _collect_conclusion_records,
+    _build_conclusion_section,
+)
+
+
+def _write_result_with_conclusion(path: Path, verdicts: list[tuple[int, str, str]]) -> None:
+    data = {
+        "application_number": "10-test",
+        "llm_model": "anthropic/claude-sonnet-4.6",
+        "claim_conclusion": {
+            "items": [
+                {
+                    "claim_number": cn,
+                    "rejection_type": rt,
+                    "merged_from": [],
+                    "our_verdict": v,
+                    "our_reasoning": "...",
+                }
+                for cn, rt, v in verdicts
+            ]
+        },
+    }
+    path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+
+
+def test_collect_conclusion_records(tmp_path):
+    result_path = tmp_path / "result.json"
+    _write_result_with_conclusion(
+        result_path,
+        [(1, "진보성", "동의"), (2, "신규성", "반대")],
+    )
+    records = list(_collect_conclusion_records(result_path, "10-test", "anthropic/claude-sonnet-4.6"))
+    assert len(records) == 2
+    assert records[0].our_verdict == "동의"
+    assert records[1].our_verdict == "반대"
+
+
+def test_collect_conclusion_records_skips_missing_verdict(tmp_path):
+    result_path = tmp_path / "result.json"
+    data = {
+        "application_number": "10-test",
+        "llm_model": "anthropic/claude-sonnet-4.6",
+        "claim_conclusion": {
+            "items": [{"claim_number": 1, "rejection_type": "진보성", "our_verdict": None}]
+        },
+    }
+    result_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    records = list(_collect_conclusion_records(result_path, "10-test", "anthropic/claude-sonnet-4.6"))
+    assert len(records) == 0
+
+
+def test_build_conclusion_section_strict_loose():
+    records = [
+        ConclusionRecord("10-A", "model-X", 1, "진보성", "동의"),
+        ConclusionRecord("10-A", "model-X", 2, "진보성", "부분동의"),
+        ConclusionRecord("10-A", "model-X", 3, "진보성", "반대"),
+    ]
+    section = _build_conclusion_section(records)
+    assert "33.3%" in section   # strict: 1/3
+    assert "66.7%" in section   # loose: 2/3
+
+
+def test_build_conclusion_section_empty():
+    section = _build_conclusion_section([])
+    assert "enrich_claim_conclusion" in section
