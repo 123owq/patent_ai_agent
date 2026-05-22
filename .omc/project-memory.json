@@ -1,0 +1,169 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1779357755740,
+  "projectRoot": "c:\\Users\\2343\\Desktop\\patent\\patent2",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Python",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "pyproject.toml"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "fastapi",
+        "version": null,
+        "category": "backend"
+      },
+      {
+        "name": "pytest",
+        "version": null,
+        "category": "testing"
+      }
+    ],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": "pytest",
+    "lintCommand": "ruff check",
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs",
+      "scripts",
+      "src",
+      "tests"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "data": {
+      "path": "data",
+      "purpose": "Data files",
+      "fileCount": 0,
+      "lastAccessed": 1779357755586,
+      "keyFiles": []
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 3,
+      "lastAccessed": 1779357755587,
+      "keyFiles": [
+        "frontend-api-guide.md",
+        "patent-parsing-instructions.md",
+        "poster_brief.md"
+      ]
+    },
+    "P_docs": {
+      "path": "P_docs",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1779357755588,
+      "keyFiles": [
+        "docs.zip",
+        "guide1.md",
+        "Product Backlog_구현_43팀.pdf",
+        "시스템 구조 설계 및 개발 환경 양식_구현_43팀.pdf"
+      ]
+    },
+    "reports": {
+      "path": "reports",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1779357755588,
+      "keyFiles": [
+        "claim_conclusion_stats.md",
+        "fig1_model_distribution.png",
+        "fig2_document_strict.png"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 10,
+      "lastAccessed": 1779357755595,
+      "keyFiles": [
+        "enrich_claim_conclusion.py",
+        "plot_agreement.py",
+        "report_agreement.py",
+        "run_batch.py",
+        "run_batch_copy.py"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1779357755602,
+      "keyFiles": []
+    },
+    "tests": {
+      "path": "tests",
+      "purpose": "Test files",
+      "fileCount": 2,
+      "lastAccessed": 1779357755634,
+      "keyFiles": [
+        "conftest.py",
+        "__init__.py"
+      ]
+    },
+    "tests\\fixtures": {
+      "path": "tests\\fixtures",
+      "purpose": "Test fixtures",
+      "fileCount": 0,
+      "lastAccessed": 1779357755651,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "",
+      "accessCount": 3,
+      "lastAccessed": 1779357769846,
+      "type": "directory"
+    },
+    {
+      "path": "src\\patent_agent\\api\\main.py",
+      "accessCount": 1,
+      "lastAccessed": 1779357826565,
+      "type": "file"
+    },
+    {
+      "path": "pyproject.toml",
+      "accessCount": 1,
+      "lastAccessed": 1779357830482,
+      "type": "file"
+    },
+    {
+      "path": "src",
+      "accessCount": 1,
+      "lastAccessed": 1779357939244,
+      "type": "directory"
+    },
+    {
+      "path": "src\\patent_agent\\llm\\openai_provider.py",
+      "accessCount": 1,
+      "lastAccessed": 1779357942502,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
