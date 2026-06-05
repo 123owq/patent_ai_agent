@@ -1,11 +1,17 @@
 from __future__ import annotations
-import copy
-import json
 import os
 from datetime import datetime
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
+from patent_agent.core.editing import (
+    InvalidEditValue,
+    InvalidTargetPath,
+    find_edit_candidates,
+    get_nested,
+    preview_edit as build_edit_preview,
+    set_nested,
+)
 from patent_agent.core.storage import load_analysis, load_analysis_version, save_analysis
 from patent_agent.models.analysis import AnalysisResult, EditLogEntry
 
@@ -18,29 +24,33 @@ class ApplyEditRequest(BaseModel):
     user_instruction: str | None = None
 
 
+class PreviewEditRequest(BaseModel):
+    target_path: str
+    new_value: str
+
+
+class EditCandidateResponse(BaseModel):
+    target_path: str
+    current_value: object
+    value_type: str
+    preview: str
+
+
+class ListEditCandidatesResponse(BaseModel):
+    candidates: list[EditCandidateResponse]
+
+
+class PreviewEditResponse(BaseModel):
+    target_path: str
+    current_value: object
+    proposed_value: object
+    normalized_value: object
+    value_type: str
+    next_version: int
+
+
 class RevertRequest(BaseModel):
     version: int
-
-
-def _get_nested(obj: dict, path: str):
-    parts = path.replace("][", ".").replace("[", ".").replace("]", "").split(".")
-    for part in parts:
-        obj = obj[int(part)] if part.isdigit() else obj[part]
-    return obj
-
-
-def _set_nested(obj: dict, path: str, value: object) -> dict:
-    result = copy.deepcopy(obj)
-    parts = path.replace("][", ".").replace("[", ".").replace("]", "").split(".")
-    current = result
-    for part in parts[:-1]:
-        current = current[int(part)] if part.isdigit() else current[part]
-    last = parts[-1]
-    if last.isdigit():
-        current[int(last)] = value
-    else:
-        current[last] = value
-    return result
 
 
 def _append_edit_log(application_number: str, entry: EditLogEntry, model_id: str | None) -> None:
@@ -54,29 +64,82 @@ def _append_edit_log(application_number: str, entry: EditLogEntry, model_id: str
         f.write(entry.model_dump_json() + "\n")
 
 
+def _load_analysis_or_http(application_number: str, model_id: str | None) -> AnalysisResult:
+    try:
+        return load_analysis(application_number, model_id=model_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="분석 결과 없음")
+
+
+@router.get("/{application_number}/edits/candidates", response_model=ListEditCandidatesResponse)
+def list_edit_candidates(
+    application_number: str,
+    query: str = Query(default=""),
+    limit: int = Query(default=20, ge=1, le=100),
+    model_id: str | None = Query(default=None),
+):
+    result = _load_analysis_or_http(application_number, model_id)
+    return ListEditCandidatesResponse(candidates=[
+        EditCandidateResponse(
+            target_path=c.target_path,
+            current_value=c.current_value,
+            value_type=c.value_type,
+            preview=c.preview,
+        )
+        for c in find_edit_candidates(result, query=query, limit=limit)
+    ])
+
+
+@router.post("/{application_number}/edits/preview", response_model=PreviewEditResponse)
+def preview_edit(
+    application_number: str,
+    req: PreviewEditRequest,
+    model_id: str | None = Query(default=None),
+):
+    result = _load_analysis_or_http(application_number, model_id)
+    try:
+        preview = build_edit_preview(result, req.target_path, req.new_value)
+    except InvalidTargetPath as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except InvalidEditValue as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return PreviewEditResponse(
+        target_path=preview.target_path,
+        current_value=preview.current_value,
+        proposed_value=preview.proposed_value,
+        normalized_value=preview.normalized_value,
+        value_type=preview.value_type,
+        next_version=preview.next_version,
+    )
+
+
 @router.post("/{application_number}/edits/apply", response_model=AnalysisResult)
 def apply_edit(
     application_number: str,
     req: ApplyEditRequest,
     model_id: str | None = Query(default=None),
 ):
-    try:
-        result = load_analysis(application_number, model_id=model_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="분석 결과 없음")
+    result = _load_analysis_or_http(application_number, model_id)
 
-    result_dict = json.loads(result.model_dump_json())
-    before = str(_get_nested(result_dict, req.target_path))
-    updated_dict = _set_nested(result_dict, req.target_path, req.new_value)
+    try:
+        preview = build_edit_preview(result, req.target_path, req.new_value)
+    except InvalidTargetPath as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except InvalidEditValue as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    result_dict = result.model_dump(mode="json")
+    updated_dict = set_nested(result_dict, req.target_path, req.new_value)
     updated_dict["version"] = result.version + 1
     updated_result = AnalysisResult.model_validate(updated_dict)
+
     save_analysis(updated_result, model_id=model_id)
 
     _append_edit_log(application_number, EditLogEntry(
         target_path=req.target_path,
-        before=before,
+        before=str(preview.current_value),
         after=req.new_value,
         source="llm-proposed-user-applied",
         user_instruction=req.user_instruction,

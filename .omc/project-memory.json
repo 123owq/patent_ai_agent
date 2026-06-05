@@ -136,8 +136,20 @@
   "hotPaths": [
     {
       "path": "",
+      "accessCount": 4,
+      "lastAccessed": 1779423141083,
+      "type": "directory"
+    },
+    {
+      "path": "uml.md",
       "accessCount": 3,
-      "lastAccessed": 1779357769846,
+      "lastAccessed": 1779425998961,
+      "type": "file"
+    },
+    {
+      "path": "src",
+      "accessCount": 2,
+      "lastAccessed": 1779423140241,
       "type": "directory"
     },
     {
@@ -153,15 +165,45 @@
       "type": "file"
     },
     {
-      "path": "src",
-      "accessCount": 1,
-      "lastAccessed": 1779357939244,
-      "type": "directory"
-    },
-    {
       "path": "src\\patent_agent\\llm\\openai_provider.py",
       "accessCount": 1,
       "lastAccessed": 1779357942502,
+      "type": "file"
+    },
+    {
+      "path": "src\\patent_agent\\models\\input.py",
+      "accessCount": 1,
+      "lastAccessed": 1779423154497,
+      "type": "file"
+    },
+    {
+      "path": "src\\patent_agent\\models\\output.py",
+      "accessCount": 1,
+      "lastAccessed": 1779423156024,
+      "type": "file"
+    },
+    {
+      "path": "src\\patent_agent\\models\\analysis.py",
+      "accessCount": 1,
+      "lastAccessed": 1779423156253,
+      "type": "file"
+    },
+    {
+      "path": "src\\patent_agent\\core\\prompts.py",
+      "accessCount": 1,
+      "lastAccessed": 1779426089380,
+      "type": "file"
+    },
+    {
+      "path": "src\\patent_agent\\core\\pipeline.py",
+      "accessCount": 1,
+      "lastAccessed": 1779426136348,
+      "type": "file"
+    },
+    {
+      "path": "uml_sequence.md",
+      "accessCount": 1,
+      "lastAccessed": 1779426148872,
       "type": "file"
     }
   ],

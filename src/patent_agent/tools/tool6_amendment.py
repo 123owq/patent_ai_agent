@@ -25,6 +25,15 @@ def _filter_spec_basis(result: AmendmentResult, allowed_paragraph_ids: set[str])
     return result
 
 
+def _fill_original_texts(result: AmendmentResult, claims: ClaimParseResult) -> None:
+    """LLM이 짧게 쓴 original_text를 실제 청구항 원문으로 교체한다."""
+    claim_map = {c.claim_number: c.original_text for c in claims.claims}
+    for draft in (result.offensive_draft, result.defensive_draft):
+        for amended_claim in draft.amended_claims:
+            if amended_claim.claim_number in claim_map:
+                amended_claim.original_text = claim_map[amended_claim.claim_number]
+
+
 def generate_amendments(
     strategy: StrategyResult,
     claims: ClaimParseResult,
@@ -71,6 +80,7 @@ def generate_amendments(
         offensive_draft=offensive_result.offensive_draft,
         defensive_draft=defensive_result.defensive_draft,
     )
+    _fill_original_texts(result, claims)
     return _filter_spec_basis(result, set(all_spec_paragraphs))
 
 

@@ -1,10 +1,18 @@
 from __future__ import annotations
+from collections import defaultdict
 from datetime import datetime
 from typing import Callable
 from patent_agent.llm.base import LLMClient
 from patent_agent.models.input import PatentDoc, OfficeActionRaw, PriorArtDoc
 from patent_agent.models.analysis import AnalysisResult
-from patent_agent.models.output import SpecMappingResult, ToolError
+from patent_agent.models.output import (
+    ClaimConclusionResult,
+    ClaimChartResult,
+    ClaimParseResult,
+    OfficeActionResult,
+    SpecMappingResult,
+    ToolError,
+)
 from patent_agent.tools.tool1_parse_office_action import (
     parse_office_action,
     extract_examiner_chart,
@@ -14,7 +22,85 @@ from patent_agent.tools.tool3_map_spec import map_spec_to_elements
 from patent_agent.tools.tool4_claim_chart import build_claim_chart
 from patent_agent.tools.tool5_strategy import analyze_diff_and_strategy
 from patent_agent.tools.tool6_amendment import generate_amendments, validate_spec_basis
+from patent_agent.core.prompts import render
 from patent_agent.core.storage import save_analysis
+
+
+def _build_conclusion_items(rejection_reasons: list) -> list[dict]:
+    by_claim: dict[int, dict[str, object]] = defaultdict(dict)
+    for reason in rejection_reasons:
+        rtype = reason.rejection_type
+        for cn in reason.target_claim_numbers:
+            by_claim[cn][rtype] = reason
+
+    items: list[dict] = []
+    for cn in sorted(by_claim.keys()):
+        types = by_claim[cn]
+        if "신규성" in types and "진보성" in types:
+            r = types["신규성"]
+            items.append({
+                "claim_number": cn, "rejection_type": "신규성",
+                "merged_from": ["신규성", "진보성"],
+                "examiner_reasoning": r.examiner_reasoning,
+                "cited_art_ids": r.cited_art_ids,
+            })
+            for rtype in sorted(t for t in types if t not in ("신규성", "진보성")):
+                r2 = types[rtype]
+                items.append({
+                    "claim_number": cn, "rejection_type": rtype,
+                    "merged_from": [],
+                    "examiner_reasoning": r2.examiner_reasoning,
+                    "cited_art_ids": r2.cited_art_ids,
+                })
+        else:
+            for rtype in sorted(types.keys()):
+                r = types[rtype]
+                items.append({
+                    "claim_number": cn, "rejection_type": rtype,
+                    "merged_from": [],
+                    "examiner_reasoning": r.examiner_reasoning,
+                    "cited_art_ids": r.cited_art_ids,
+                })
+    return items
+
+
+def _generate_claim_conclusion(
+    oa_result: OfficeActionResult,
+    claims_result: ClaimParseResult,
+    chart_result: ClaimChartResult,
+    llm: LLMClient,
+) -> ClaimConclusionResult | None:
+    items = _build_conclusion_items(oa_result.rejection_reasons)
+    if not items:
+        return None
+
+    claims_by_number = {c.claim_number: c for c in claims_result.claims}
+    charts_by_claim = {c.target_claim_number: c.rows for c in chart_result.charts}
+
+    items_with_text = [
+        {
+            **item,
+            "claim_text": getattr(claims_by_number.get(item["claim_number"]), "original_text", "(청구항 원문 없음)"),
+            "prior_art_rows": charts_by_claim.get(item["claim_number"], []),
+        }
+        for item in items
+    ]
+
+    prompt = render(
+        "claim_conclusion.j2",
+        application_number=claims_result.application_number,
+        items=items_with_text,
+    )
+    conclusion = llm.generate(prompt, schema=ClaimConclusionResult, temperature=0.0)
+
+    merged_from_map = {
+        (item["claim_number"], item["rejection_type"]): item["merged_from"]
+        for item in items
+    }
+    for ci in conclusion.items:
+        ci.merged_from = merged_from_map.get((ci.claim_number, ci.rejection_type), [])
+
+    return conclusion
 
 
 STEP_ORDER: list[str] = [
@@ -22,6 +108,7 @@ STEP_ORDER: list[str] = [
     "claim_parse",
     "spec_mapping",
     "claim_chart",
+    "claim_conclusion",
     "strategy",
     "amendment",
 ]
@@ -69,10 +156,13 @@ def run_analysis(
 
     chart_result = build_claim_chart(target_claims, prior_arts, examiner_chart, llm, _tool4_cb)
 
-    _cb("공격·방어 전략 생성", 0.65)
+    _cb("청구항별 최종 판단 생성", 0.65)
+    claim_conclusion = _generate_claim_conclusion(oa_result, claims_result, chart_result, llm)
+
+    _cb("공격·방어 전략 생성", 0.72)
     strategy = analyze_diff_and_strategy(chart_result, oa_result, spec_mapping, llm)
 
-    _cb("보정청구항 생성", 0.85)
+    _cb("보정청구항 생성", 0.86)
     amendment = generate_amendments(
         strategy,
         claims_result,
@@ -106,6 +196,7 @@ def run_analysis(
         claim_parse=claims_result,
         spec_mapping=spec_mapping,
         claim_chart=chart_result,
+        claim_conclusion=claim_conclusion,
         strategy=strategy,
         amendment=amendment,
     )
@@ -131,12 +222,13 @@ def run_from_step(
     _cb = progress_cb or (lambda s, r: None)
     errors: list[ToolError] = list(existing.errors)
 
-    oa_result     = existing.office_action
-    claims_result = existing.claim_parse
-    spec_mapping  = existing.spec_mapping
-    chart_result  = existing.claim_chart
-    strategy      = existing.strategy
-    amendment     = existing.amendment
+    oa_result        = existing.office_action
+    claims_result    = existing.claim_parse
+    spec_mapping     = existing.spec_mapping
+    chart_result     = existing.claim_chart
+    claim_conclusion = existing.claim_conclusion
+    strategy         = existing.strategy
+    amendment        = existing.amendment
 
     if start_idx <= 0:
         _cb("통지서 분석", 0.0)
@@ -174,11 +266,15 @@ def run_from_step(
         chart_result = build_claim_chart(target_claims, prior_arts, examiner_chart, llm, _tool4_cb)
 
     if start_idx <= 4:
-        _cb("공격·방어 전략 생성", 0.65)
-        strategy = analyze_diff_and_strategy(chart_result, oa_result, spec_mapping, llm)
+        _cb("청구항별 최종 판단 생성", 0.65)
+        claim_conclusion = _generate_claim_conclusion(oa_result, claims_result, chart_result, llm)
 
     if start_idx <= 5:
-        _cb("보정청구항 생성", 0.85)
+        _cb("공격·방어 전략 생성", 0.72)
+        strategy = analyze_diff_and_strategy(chart_result, oa_result, spec_mapping, llm)
+
+    if start_idx <= 6:
+        _cb("보정청구항 생성", 0.86)
         amendment = generate_amendments(
             strategy,
             claims_result,
@@ -210,6 +306,7 @@ def run_from_step(
         claim_parse=claims_result,
         spec_mapping=spec_mapping,
         claim_chart=chart_result,
+        claim_conclusion=claim_conclusion,
         strategy=strategy,
         amendment=amendment,
     )

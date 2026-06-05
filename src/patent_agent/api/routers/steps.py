@@ -28,12 +28,13 @@ from patent_agent.llm.base import LLMClient
 router = APIRouter(prefix="/api/v1/analysis", tags=["steps"])
 
 _STEP_FIELD_MAP = {
-    "office_action": lambda r: r.office_action,
-    "claim_parse":   lambda r: r.claim_parse,
-    "spec_mapping":  lambda r: r.spec_mapping,
-    "claim_chart":   lambda r: r.claim_chart,
-    "strategy":      lambda r: r.strategy,
-    "amendment":     lambda r: r.amendment,
+    "office_action":    lambda r: r.office_action,
+    "claim_parse":      lambda r: r.claim_parse,
+    "spec_mapping":     lambda r: r.spec_mapping,
+    "claim_chart":      lambda r: r.claim_chart,
+    "claim_conclusion": lambda r: r.claim_conclusion,
+    "strategy":         lambda r: r.strategy,
+    "amendment":        lambda r: r.amendment,
 }
 
 
@@ -67,6 +68,8 @@ def get_step_result(
         raise HTTPException(status_code=404, detail="분석 결과 없음")
 
     step_obj = _STEP_FIELD_MAP[step_name](result)
+    if step_obj is None:
+        raise HTTPException(status_code=404, detail=f"'{step_name}' 결과 없음 (아직 생성되지 않음)")
     return JSONResponse(content=json.loads(step_obj.model_dump_json()))
 
 
